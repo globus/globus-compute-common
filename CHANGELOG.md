@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.0.3 (2021-08-17)
+
 - Bugfix: `FuncxResponseError.unpack()` correctly handles values not in the
   known response codes enum
 - Add `py.typed` to package data, to publish type annotations
