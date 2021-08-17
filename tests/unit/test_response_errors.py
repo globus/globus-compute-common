@@ -1,4 +1,4 @@
-from funcx_common.response_errors import UserUnauthenticated
+from funcx_common.response_errors import FuncxResponseError, UserUnauthenticated
 
 
 def test_pack_error():
@@ -8,3 +8,8 @@ def test_pack_error():
     assert data["code"] == 1
     assert data["error_args"] == []
     assert data["http_status_code"] == 401
+
+
+def test_unpack_inverts_pack():
+    packed = UserUnauthenticated().pack()
+    assert isinstance(FuncxResponseError.unpack(packed), UserUnauthenticated)
