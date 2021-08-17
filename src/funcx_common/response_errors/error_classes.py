@@ -1,3 +1,6 @@
+import typing as t
+import uuid
+
 from .constants import HTTPStatusCode, ResponseErrorCode
 from .error_base import FuncxResponseError
 
@@ -14,7 +17,7 @@ class UserUnauthenticated(FuncxResponseError):
     # according to the spec
     http_status_code = HTTPStatusCode.UNAUTHORIZED
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.error_args = []
         self.reason = (
             "Could not find user. You must be logged in to perform this function."
@@ -31,8 +34,7 @@ class UserNotFound(FuncxResponseError):
     code = ResponseErrorCode.USER_NOT_FOUND
     http_status_code = HTTPStatusCode.NOT_FOUND
 
-    def __init__(self, reason):
-        reason = str(reason)
+    def __init__(self, reason: str) -> None:
         self.error_args = [reason]
         self.reason = reason
 
@@ -43,10 +45,11 @@ class FunctionNotFound(FuncxResponseError):
     code = ResponseErrorCode.FUNCTION_NOT_FOUND
     http_status_code = HTTPStatusCode.NOT_FOUND
 
-    def __init__(self, uuid):
-        self.error_args = [uuid]
-        self.reason = f"Function {uuid} could not be resolved"
-        self.uuid = uuid
+    def __init__(self, func_uuid: t.Union[uuid.UUID, str]) -> None:
+        func_uuid = str(func_uuid)
+        self.error_args = [func_uuid]
+        self.reason = f"Function {func_uuid} could not be resolved"
+        self.uuid = func_uuid
 
 
 class EndpointNotFound(FuncxResponseError):
@@ -55,10 +58,11 @@ class EndpointNotFound(FuncxResponseError):
     code = ResponseErrorCode.ENDPOINT_NOT_FOUND
     http_status_code = HTTPStatusCode.NOT_FOUND
 
-    def __init__(self, uuid):
-        self.error_args = [uuid]
-        self.reason = f"Endpoint {uuid} could not be resolved"
-        self.uuid = uuid
+    def __init__(self, ep_uuid: t.Union[uuid.UUID, str]) -> None:
+        ep_uuid = str(ep_uuid)
+        self.error_args = [ep_uuid]
+        self.reason = f"Endpoint {ep_uuid} could not be resolved"
+        self.uuid = ep_uuid
 
 
 class ContainerNotFound(FuncxResponseError):
@@ -67,10 +71,11 @@ class ContainerNotFound(FuncxResponseError):
     code = ResponseErrorCode.CONTAINER_NOT_FOUND
     http_status_code = HTTPStatusCode.NOT_FOUND
 
-    def __init__(self, uuid):
-        self.error_args = [uuid]
-        self.reason = f"Container {uuid} not found"
-        self.uuid = uuid
+    def __init__(self, container_uuid: t.Union[uuid.UUID, str]) -> None:
+        container_uuid = str(container_uuid)
+        self.error_args = [container_uuid]
+        self.reason = f"Container {container_uuid} not found"
+        self.uuid = container_uuid
 
 
 class TaskNotFound(FuncxResponseError):
@@ -79,10 +84,11 @@ class TaskNotFound(FuncxResponseError):
     code = ResponseErrorCode.TASK_NOT_FOUND
     http_status_code = HTTPStatusCode.NOT_FOUND
 
-    def __init__(self, uuid):
-        self.error_args = [uuid]
-        self.reason = f"Task {uuid} not found"
-        self.uuid = uuid
+    def __init__(self, task_uuid: t.Union[uuid.UUID, str]) -> None:
+        task_uuid = str(task_uuid)
+        self.error_args = [task_uuid]
+        self.reason = f"Task {task_uuid} not found"
+        self.uuid = task_uuid
 
 
 class AuthGroupNotFound(FuncxResponseError):
@@ -91,10 +97,11 @@ class AuthGroupNotFound(FuncxResponseError):
     code = ResponseErrorCode.AUTH_GROUP_NOT_FOUND
     http_status_code = HTTPStatusCode.NOT_FOUND
 
-    def __init__(self, uuid):
-        self.error_args = [uuid]
-        self.reason = f"AuthGroup {uuid} not found"
-        self.uuid = uuid
+    def __init__(self, group_uuid: t.Union[uuid.UUID, str]) -> None:
+        group_uuid = str(group_uuid)
+        self.error_args = [group_uuid]
+        self.reason = f"AuthGroup {group_uuid} not found"
+        self.uuid = group_uuid
 
 
 class FunctionAccessForbidden(FuncxResponseError):
@@ -103,10 +110,11 @@ class FunctionAccessForbidden(FuncxResponseError):
     code = ResponseErrorCode.FUNCTION_ACCESS_FORBIDDEN
     http_status_code = HTTPStatusCode.FORBIDDEN
 
-    def __init__(self, uuid):
-        self.error_args = [uuid]
-        self.reason = f"Unauthorized access to function {uuid}"
-        self.uuid = uuid
+    def __init__(self, func_uuid: t.Union[uuid.UUID, str]) -> None:
+        func_uuid = str(func_uuid)
+        self.error_args = [func_uuid]
+        self.reason = f"Unauthorized access to function {func_uuid}"
+        self.uuid = func_uuid
 
 
 class EndpointAccessForbidden(FuncxResponseError):
@@ -115,10 +123,11 @@ class EndpointAccessForbidden(FuncxResponseError):
     code = ResponseErrorCode.ENDPOINT_ACCESS_FORBIDDEN
     http_status_code = HTTPStatusCode.FORBIDDEN
 
-    def __init__(self, uuid):
-        self.error_args = [uuid]
-        self.reason = f"Unauthorized access to endpoint {uuid}"
-        self.uuid = uuid
+    def __init__(self, ep_uuid: t.Union[uuid.UUID, str]) -> None:
+        ep_uuid = str(ep_uuid)
+        self.error_args = [ep_uuid]
+        self.reason = f"Unauthorized access to endpoint {ep_uuid}"
+        self.uuid = ep_uuid
 
 
 class FunctionNotPermitted(FuncxResponseError):
@@ -127,7 +136,12 @@ class FunctionNotPermitted(FuncxResponseError):
     code = ResponseErrorCode.FUNCTION_NOT_PERMITTED
     http_status_code = HTTPStatusCode.FORBIDDEN
 
-    def __init__(self, function_uuid, endpoint_uuid):
+    def __init__(
+        self,
+        function_uuid: t.Union[uuid.UUID, str],
+        endpoint_uuid: t.Union[uuid.UUID, str],
+    ) -> None:
+        function_uuid, endpoint_uuid = str(function_uuid), str(endpoint_uuid)
         self.error_args = [function_uuid, endpoint_uuid]
         self.reason = (
             f"Function {function_uuid} not permitted on endpoint {endpoint_uuid}"
@@ -142,10 +156,11 @@ class EndpointAlreadyRegistered(FuncxResponseError):
     code = ResponseErrorCode.ENDPOINT_ALREADY_REGISTERED
     http_status_code = HTTPStatusCode.BAD_REQUEST
 
-    def __init__(self, uuid):
-        self.error_args = [uuid]
-        self.reason = f"Endpoint {uuid} was already registered by a different user"
-        self.uuid = uuid
+    def __init__(self, ep_uuid: t.Union[uuid.UUID, str]) -> None:
+        ep_uuid = str(ep_uuid)
+        self.error_args = [ep_uuid]
+        self.reason = f"Endpoint {ep_uuid} was already registered by a different user"
+        self.uuid = ep_uuid
 
 
 class ForwarderRegistrationError(FuncxResponseError):
@@ -154,8 +169,7 @@ class ForwarderRegistrationError(FuncxResponseError):
     code = ResponseErrorCode.FORWARDER_REGISTRATION_ERROR
     http_status_code = HTTPStatusCode.BAD_GATEWAY
 
-    def __init__(self, error_reason):
-        error_reason = str(error_reason)
+    def __init__(self, error_reason: str) -> None:
         self.error_args = [error_reason]
         self.reason = f"Endpoint registration with forwarder failed - {error_reason}"
 
@@ -166,8 +180,7 @@ class ForwarderContactError(FuncxResponseError):
     code = ResponseErrorCode.FORWARDER_CONTACT_ERROR
     http_status_code = HTTPStatusCode.BAD_GATEWAY
 
-    def __init__(self, error_reason):
-        error_reason = str(error_reason)
+    def __init__(self, error_reason: str) -> None:
         self.error_args = [error_reason]
         self.reason = f"Contacting forwarder failed with {error_reason}"
 
@@ -178,8 +191,10 @@ class EndpointStatsError(FuncxResponseError):
     code = ResponseErrorCode.ENDPOINT_STATS_ERROR
     http_status_code = HTTPStatusCode.INTERNAL_SERVER_ERROR
 
-    def __init__(self, endpoint_uuid, error_reason):
-        error_reason = str(error_reason)
+    def __init__(
+        self, endpoint_uuid: t.Union[uuid.UUID, str], error_reason: str
+    ) -> None:
+        endpoint_uuid = str(endpoint_uuid)
         self.error_args = [endpoint_uuid, error_reason]
         self.reason = (
             f"Unable to retrieve stats for endpoint: {endpoint_uuid}. {error_reason}"
@@ -192,7 +207,8 @@ class LivenessStatsError(FuncxResponseError):
     code = ResponseErrorCode.LIVENESS_STATS_ERROR
     http_status_code = HTTPStatusCode.BAD_GATEWAY
 
-    def __init__(self, http_status_code):
+    def __init__(self, http_status_code: t.Union[int, str]) -> None:
+        http_status_code = int(http_status_code)
         self.error_args = [http_status_code]
         self.reason = "Forwarder did not respond with liveness stats"
 
@@ -203,8 +219,7 @@ class RequestKeyError(FuncxResponseError):
     code = ResponseErrorCode.REQUEST_KEY_ERROR
     http_status_code = HTTPStatusCode.BAD_REQUEST
 
-    def __init__(self, key_error_reason):
-        key_error_reason = str(key_error_reason)
+    def __init__(self, key_error_reason: str) -> None:
         self.error_args = [key_error_reason]
         self.reason = f"Missing key in JSON request - {key_error_reason}"
 
@@ -215,8 +230,7 @@ class RequestMalformed(FuncxResponseError):
     code = ResponseErrorCode.REQUEST_MALFORMED
     http_status_code = HTTPStatusCode.BAD_REQUEST
 
-    def __init__(self, malformed_reason):
-        malformed_reason = str(malformed_reason)
+    def __init__(self, malformed_reason: str) -> None:
         self.error_args = [malformed_reason]
         self.reason = (
             f"Request Malformed. Missing critical information: {malformed_reason}"
@@ -229,8 +243,7 @@ class InternalError(FuncxResponseError):
     code = ResponseErrorCode.INTERNAL_ERROR
     http_status_code = HTTPStatusCode.INTERNAL_SERVER_ERROR
 
-    def __init__(self, error_reason):
-        error_reason = str(error_reason)
+    def __init__(self, error_reason: str) -> None:
         self.error_args = [error_reason]
         self.reason = f"Internal server error: {error_reason}"
 
@@ -241,7 +254,7 @@ class EndpointOutdated(FuncxResponseError):
     code = ResponseErrorCode.ENDPOINT_OUTDATED
     http_status_code = HTTPStatusCode.BAD_REQUEST
 
-    def __init__(self, min_ep_version):
+    def __init__(self, min_ep_version: str) -> None:
         self.error_args = [min_ep_version]
         self.reason = (
             "Endpoint is out of date. "
@@ -255,10 +268,11 @@ class TaskGroupNotFound(FuncxResponseError):
     code = ResponseErrorCode.TASK_GROUP_NOT_FOUND
     http_status_code = HTTPStatusCode.NOT_FOUND
 
-    def __init__(self, uuid):
-        self.error_args = [uuid]
-        self.reason = f"Task Group {uuid} could not be resolved"
-        self.uuid = uuid
+    def __init__(self, task_uuid: t.Union[uuid.UUID, str]) -> None:
+        task_uuid = str(task_uuid)
+        self.error_args = [task_uuid]
+        self.reason = f"Task Group {task_uuid} could not be resolved"
+        self.uuid = task_uuid
 
 
 class TaskGroupAccessForbidden(FuncxResponseError):
@@ -267,10 +281,11 @@ class TaskGroupAccessForbidden(FuncxResponseError):
     code = ResponseErrorCode.TASK_GROUP_ACCESS_FORBIDDEN
     http_status_code = HTTPStatusCode.FORBIDDEN
 
-    def __init__(self, uuid):
-        self.error_args = [uuid]
-        self.reason = f"Unauthorized access to Task Group {uuid}"
-        self.uuid = uuid
+    def __init__(self, task_uuid: t.Union[uuid.UUID, str]) -> None:
+        task_uuid = str(task_uuid)
+        self.error_args = [task_uuid]
+        self.reason = f"Unauthorized access to Task Group {task_uuid}"
+        self.uuid = task_uuid
 
 
 class InvalidUUID(FuncxResponseError):
@@ -279,7 +294,6 @@ class InvalidUUID(FuncxResponseError):
     code = ResponseErrorCode.INVALID_UUID
     http_status_code = HTTPStatusCode.BAD_REQUEST
 
-    def __init__(self, reason):
-        reason = str(reason)
+    def __init__(self, reason: str) -> None:
         self.error_args = [reason]
         self.reason = reason

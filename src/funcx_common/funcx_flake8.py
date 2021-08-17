@@ -1,3 +1,4 @@
+# type: ignore
 """
 A Flake8 Plugin for use in FuncX
 

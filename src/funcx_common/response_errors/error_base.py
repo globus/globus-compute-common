@@ -1,34 +1,44 @@
-from .constants import ResponseErrorCode
+import typing as t
+
+from .constants import HTTPStatusCode, ResponseErrorCode
 
 
 class FuncxResponseError(Exception):
     """Base class for all web service response exceptions"""
 
-    _MAPPED_ERROR_CLASSES = {}
+    _MAPPED_ERROR_CLASSES: t.Dict[ResponseErrorCode, t.Type["FuncxResponseError"]] = {}
+    code: t.ClassVar[ResponseErrorCode]
+    error_args: t.List[t.Any]
 
-    def __init_subclass__(cls, **kwargs):
-        super().__init_subclass__(**kwargs)
+    def __init_subclass__(cls, **kwargs: t.Any) -> None:
         FuncxResponseError._MAPPED_ERROR_CLASSES[cls.code] = cls
 
     @property
-    def code(self):
+    def http_status_code(self) -> HTTPStatusCode:
         raise NotImplementedError()
 
-    @property
-    def http_status_code(self):
-        raise NotImplementedError()
-
-    def __init__(self, reason):
+    def __init__(self, reason: str) -> None:
         self.error_args = [reason]
         self.reason = reason
 
-    def __str__(self):
-        return self.__repr__()
-
-    def __repr__(self):
+    def __str__(self) -> str:
         return self.reason
 
-    def pack(self):
+    def __repr__(self) -> str:
+        return (
+            f"{self.__class__.__name__}("
+            + ",".join(
+                [
+                    f"reason={self.reason}",
+                    f"code={self.code}",
+                    f"http_status_code={self.http_status_code}",
+                    f"error_args={self.error_args}",
+                ]
+            )
+            + ")"
+        )
+
+    def pack(self) -> t.Dict[str, t.Any]:
         return {
             "status": "Failed",
             "code": int(self.code),
@@ -38,7 +48,7 @@ class FuncxResponseError(Exception):
         }
 
     @classmethod
-    def unpack(cls, res_data):
+    def unpack(cls, res_data: t.Dict[str, t.Any]) -> t.Optional[Exception]:
         if "status" in res_data and res_data["status"] == "Failed":
             if (
                 "code" in res_data

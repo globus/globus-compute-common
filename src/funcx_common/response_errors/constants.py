@@ -1,10 +1,10 @@
-from enum import Enum
+from enum import IntEnum
 
 
 # IMPORTANT: new error codes can be added, but existing error codes must not be changed
 # once published.
 # changing existing error codes will cause problems with users that have older versions
-class ResponseErrorCode(int, Enum):
+class ResponseErrorCode(IntEnum):
     UNKNOWN_ERROR = 0
     USER_UNAUTHENTICATED = 1
     USER_NOT_FOUND = 2
@@ -31,7 +31,7 @@ class ResponseErrorCode(int, Enum):
 
 
 # a collection of the HTTP status error codes that the service would make use of
-class HTTPStatusCode(int, Enum):
+class HTTPStatusCode(IntEnum):
     BAD_REQUEST = 400
     # semantically this response means "unauthenticated", according to the spec
     UNAUTHORIZED = 401
