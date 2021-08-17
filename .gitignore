@@ -1,0 +1,12 @@
+dist
+*.pyc
+.tox
+*.egg-info
+
+# virtualenv
+.venv/
+.venv*/
+
+# pytest
+.pytest_cache
+.coverage
