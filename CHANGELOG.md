@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Add `py.typed` to package data, to publish type annotations
+- Bugfix: annotate `FuncxResponseError.http_status_code` as a class var
 
 ## 0.0.2 (2021-08-17)
 

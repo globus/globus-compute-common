@@ -8,14 +8,11 @@ class FuncxResponseError(Exception):
 
     _MAPPED_ERROR_CLASSES: t.Dict[ResponseErrorCode, t.Type["FuncxResponseError"]] = {}
     code: t.ClassVar[ResponseErrorCode]
+    http_status_code: t.ClassVar[HTTPStatusCode]
     error_args: t.List[t.Any]
 
     def __init_subclass__(cls, **kwargs: t.Any) -> None:
         FuncxResponseError._MAPPED_ERROR_CLASSES[cls.code] = cls
-
-    @property
-    def http_status_code(self) -> HTTPStatusCode:
-        raise NotImplementedError()
 
     def __init__(self, reason: str) -> None:
         self.error_args = [reason]
