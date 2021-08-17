@@ -10,4 +10,4 @@ Reviewer goes to the releases page [1] to write up the release, using the
 changelog
 
 
-[1] [GitHub Releases](https://github.com/funcx/funcx-common/releases)
+[1] [GitHub Releases](https://github.com/funcx-faas/funcx-common/releases)

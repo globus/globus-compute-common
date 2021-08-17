@@ -5,7 +5,7 @@ First off, thank you so much for taking the time to contribute! :+1:
 ## Bugs & Feature Requests
 
 Should be reported as
-[GitHub Issues](https://github.com/funcx/funcx-common/issues)
+[GitHub Issues](https://github.com/funcx-faas/funcx-common/issues)
 
 For a good bug report:
 
