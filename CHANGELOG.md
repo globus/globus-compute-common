@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add `py.typed` to package data, to publish type annotations
+
 ## 0.0.2 (2021-08-17)
 
 - Fix links to repo/homepage (including in package metadata)
