@@ -10,6 +10,7 @@ class FuncxResponseError(Exception):
     code: t.ClassVar[ResponseErrorCode]
     http_status_code: t.ClassVar[HTTPStatusCode]
     error_args: t.List[t.Any]
+    reason: str
 
     def __init_subclass__(cls, **kwargs: t.Any) -> None:
         FuncxResponseError._MAPPED_ERROR_CLASSES[cls.code] = cls
@@ -26,7 +27,7 @@ class FuncxResponseError(Exception):
             f"{self.__class__.__name__}("
             + ",".join(
                 [
-                    f"reason={self.reason}",
+                    f"reason='{self.reason}'",
                     f"code={self.code}",
                     f"http_status_code={self.http_status_code}",
                     f"error_args={self.error_args}",
@@ -56,13 +57,16 @@ class FuncxResponseError(Exception):
                 # user is not using the latest SDK version, an exception will occur
                 # here which we will pass in order to give the user a generic
                 # exception below
-                res_error_code = ResponseErrorCode(res_data["code"])
-                error_class = FuncxResponseError._MAPPED_ERROR_CLASSES.get(
-                    res_error_code
-                )
-
-                if error_class is not None:
-                    return error_class(*res_data["error_args"])
+                try:
+                    res_error_code = ResponseErrorCode(res_data["code"])
+                except ValueError:
+                    pass
+                else:
+                    error_class = FuncxResponseError._MAPPED_ERROR_CLASSES.get(
+                        res_error_code
+                    )
+                    if error_class is not None:
+                        return error_class(*res_data["error_args"])
 
             # this is useful for older SDK versions to be compatible with a newer web
             # service: if the SDK does not recognize an error code, it creates a generic

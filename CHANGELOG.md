@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Bugfix: `FuncxResponseError.unpack()` correctly handles values not in the
+  known response codes enum
 - Add `py.typed` to package data, to publish type annotations
 - Bugfix: annotate `FuncxResponseError.http_status_code` as a class var
 
