@@ -31,3 +31,4 @@ repos:
   hooks:
     - id: mypy
       files: ^src/funcx_common/
+      additional_dependencies: ['types-redis']

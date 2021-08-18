@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- First version of generic task utilities. Constants starting with task states
+  and a `TaskProtocol` class which defines (some) required properties of
+  `Task` objects. Import from `funcx_common.tasks`
+- Add first version of `FuncxRedisConnection` and `FuncxEndpointTaskQueue`
+  utilities for wrapping redis-py. Import from `funcx_common.redis`, as in
+  `from funcx_common.redis import FuncxEndpointTaskQueue`
+- A new extra, `redis` defines a requirement for the redis-py lib. Install with
+  `funcx-common[redis]` to pull in the redis requirement. Installation
+  without `reids` will result in `FuncxRedisConnection` and
+  `FuncxEndpointTaskQueue` failing to initialize
+
 ## 0.0.3 (2021-08-17)
 
 - Bugfix: `FuncxResponseError.unpack()` correctly handles values not in the
