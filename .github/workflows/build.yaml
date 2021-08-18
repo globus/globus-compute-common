@@ -7,17 +7,6 @@ on:
     - cron: '0 4 * * 1'
 jobs:
   test:
-    # run a local redi container for the 'test' job
-    # see:
-    #   https://docs.github.com/en/actions/guides/creating-redis-service-containers
-    services:
-      redis:
-        image: redis
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
@@ -33,6 +22,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
+      - name: start redis
+        if: runner.os == 'Linux'
+        uses: ./.github/actions/redis
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
@@ -42,7 +34,7 @@ jobs:
           python -m pip install -U tox
       - name: lint
         # only lint on 3.9 for faster overall runs
-        if: ${{ matrix.python-version == '3.9' }}
-        run: python -m tox -e lint
+        if: matrix.python-version == '3.9'
+        run: python -m tox -e lint,mypy
       - name: test
         run: python -m tox -e py,py-noredis -- --cov-report="term-missing:skip-covered"
