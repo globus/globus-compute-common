@@ -127,3 +127,13 @@ def test_redis_field_with_real_storage(redis_client):
     assert task.state is None
     task.state = TaskState.RUNNING
     assert task.state is TaskState.RUNNING
+
+
+def test_cannot_use_redis_field_outside_of_class_structure():
+    class MyClass:
+        foo = RedisField()
+
+    x = MyClass()
+
+    with pytest.raises(TypeError):
+        x.foo
