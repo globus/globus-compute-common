@@ -5,6 +5,7 @@ import pytest
 
 from funcx_common.redis import FuncxEndpointTaskQueue, FuncxRedisConnection
 from funcx_common.tasks import TaskProtocol, TaskState
+from funcx_common.testing import LOCAL_REDIS_REACHABLE
 
 try:
     import redis
@@ -12,21 +13,6 @@ try:
     has_redis = True
 except ImportError:
     has_redis = False
-
-
-def _local_redis_reachable():
-    # run this func only once to avoid slowing down the testsuite
-    if not hasattr(_local_redis_reachable, "_result"):
-        _local_redis_reachable._result = None
-    if _local_redis_reachable._result is None:
-        _local_redis_reachable._result = False
-        if has_redis:
-            try:
-                redis.Redis("localhost", port=6379).ping()
-                _local_redis_reachable._result = True
-            except redis.exceptions.ConnectionError:
-                pass
-    return _local_redis_reachable._result
 
 
 @pytest.mark.skipif(has_redis, reason="test only runs without redis lib")
@@ -49,7 +35,7 @@ def test_str_form(monkeypatch):
 
 
 @pytest.mark.skipif(
-    not _local_redis_reachable(), reason="test requires local redis reachable"
+    not LOCAL_REDIS_REACHABLE, reason="test requires local redis reachable"
 )
 def test_enqueue_and_dequeue_simple_task():
     class SimpleInMemoryTask(TaskProtocol):
@@ -75,7 +61,7 @@ def test_enqueue_and_dequeue_simple_task():
 
 
 @pytest.mark.skipif(
-    not _local_redis_reachable(), reason="test requires local redis reachable"
+    not LOCAL_REDIS_REACHABLE, reason="test requires local redis reachable"
 )
 def test_dequeue_empty_behavior():
     endpoint = str(uuid.uuid1())
