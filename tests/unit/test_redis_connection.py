@@ -37,23 +37,6 @@ def test_cannot_create_connection_without_redis_lib():
 
 
 @pytest.mark.skipif(not has_redis, reason="test requires redis lib")
-def test_connection_is_lazy(monkeypatch):
-    # __init__ shouldn't connect immediately
-    def mock_strict_redis(*args, **kwargs):
-        raise redis.exceptions.ConnectionError("bah humbug!")
-
-    monkeypatch.setattr(redis, "StrictRedis", mock_strict_redis)
-
-    # not connected yet
-    conn_obj = FuncxRedisConnection("localhost")
-    assert conn_obj.is_connected is False
-
-    # connect now, observe the error
-    with pytest.raises(redis.exceptions.ConnectionError):
-        conn_obj.ensure_is_connected()
-
-
-@pytest.mark.skipif(not has_redis, reason="test requires redis lib")
 def test_str_form(monkeypatch):
     conn_obj = FuncxRedisConnection("localhost")
     stred = str(conn_obj)
@@ -100,3 +83,26 @@ def test_dequeue_empty_behavior():
 
     with pytest.raises(queue.Empty):
         task_queue.dequeue()
+
+
+@pytest.mark.skipif(not has_redis, reason="test requires redis lib")
+def test_connection_error_on_enqueue(monkeypatch):
+    class SimpleInMemoryTask(TaskProtocol):
+        def __init__(self):
+            self.task_id = str(uuid.uuid1())
+            self.endpoint = None
+            self.status = TaskState.RECEIVED
+
+    def mock_redis_method(*args, **kwargs):
+        raise redis.exceptions.ConnectionError("bah humbug!")
+
+    monkeypatch.setattr(redis.Redis, "rpush", mock_redis_method)
+
+    mytask = SimpleInMemoryTask()
+    endpoint = str(uuid.uuid1())
+    task_queue = FuncxEndpointTaskQueue("localhost", endpoint)
+
+    # ensure that the error logging wrapper still allows the ConnectionError to
+    # propagate
+    with pytest.raises(redis.exceptions.ConnectionError):
+        task_queue.enqueue(mytask)

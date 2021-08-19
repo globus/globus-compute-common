@@ -17,13 +17,13 @@ class FuncxEndpointTaskQueue(FuncxRedisConnection):
     def queue_name(self) -> str:
         return f"task_{self.endpoint}_list"
 
-    @FuncxRedisConnection.method_requires_connection
+    @FuncxRedisConnection.log_connection_errors
     def enqueue(self, task: TaskProtocol) -> None:
         task.endpoint = self.endpoint
         task.status = TaskState.WAITING_FOR_EP
         self.redis_client.rpush(self.queue_name, task.task_id)
 
-    @FuncxRedisConnection.method_requires_connection
+    @FuncxRedisConnection.log_connection_errors
     def dequeue(self, *, timeout: int = 1) -> str:
         res = self.redis_client.blpop(self.queue_name, timeout=timeout)
         if not res:

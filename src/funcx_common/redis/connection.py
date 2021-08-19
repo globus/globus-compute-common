@@ -37,51 +37,28 @@ class FuncxRedisConnection:
 
         self.hostname = hostname
         self.port = port
-        self._redis_client: t.Optional[redis.StrictRedis] = None
-
-    def _do_connect(self) -> None:
-        try:
-            self._redis_client = redis.StrictRedis(
-                host=self.hostname, port=self.port, decode_responses=True
-            )
-            self._redis_client.ping()
-        except redis.exceptions.ConnectionError:
-            self._redis_client = None
-            log.exception(
-                "ConnectionError while trying to connect to redis@%s:%s",
-                self.hostname,
-                self.port,
-            )
-            raise
-
-    @property
-    def is_connected(self) -> bool:
-        return self._redis_client is not None
-
-    def ensure_is_connected(self) -> None:
-        """imperatively force a connection if one may or may not exist"""
-        if not self.is_connected:
-            self._do_connect()
-
-    @property
-    def redis_client(self) -> "redis.StrictRedis":
-        self.ensure_is_connected()
-        return t.cast(redis.StrictRedis, self._redis_client)
+        self.redis_client = redis.Redis(
+            host=self.hostname, port=self.port, decode_responses=True
+        )
 
     def _get_str_attrs(self) -> t.List[str]:
-        return [
-            f"hostname={self.hostname}",
-            f"port={self.port}",
-        ]
+        return [f"hostname={self.hostname}", f"port={self.port}"]
 
     def __str__(self) -> str:
         return f"{self.__class__.__name__}(" + ",".join(self._get_str_attrs()) + ")"
 
     @staticmethod
-    def method_requires_connection(func: t.Callable[..., RT]) -> t.Callable[..., RT]:
+    def log_connection_errors(func: t.Callable[..., RT]) -> t.Callable[..., RT]:
         @functools.wraps(func)
         def wrapper(self: FuncxRedisConnection, *args: t.Any, **kwargs: t.Any) -> RT:
-            self.ensure_is_connected()
-            return func(self, *args, **kwargs)
+            try:
+                return func(self, *args, **kwargs)
+            except redis.exceptions.ConnectionError:
+                log.exception(
+                    "ConnectionError while trying to connect to redis@%s:%s",
+                    self.hostname,
+                    self.port,
+                )
+                raise
 
         return wrapper
