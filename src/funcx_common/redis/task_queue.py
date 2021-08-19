@@ -29,4 +29,4 @@ class FuncxEndpointTaskQueue(FuncxRedisConnection):
         if not res:
             raise queue.Empty
         _queue_name, task_id = res
-        return t.cast(str, task_id)
+        return task_id
