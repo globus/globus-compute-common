@@ -1,24 +1,8 @@
-import functools
 import typing as t
 
 from .serde import DEFAULT_SERDE, FuncxRedisSerde
 
-RT = t.TypeVar("RT")
 _null_key = "__NULL_KEY__"
-
-
-def _check_null_key(func: t.Callable[..., RT]) -> t.Callable[..., RT]:
-    @functools.wraps(func)
-    def wrapper(self: "RedisField", *args: t.Any, **kwargs: t.Any) -> RT:
-        if self.key == "__NULL_KEY__":
-            raise TypeError(
-                "Cannot use RedisField outside of a class with "
-                "HasRedisFieldsMeta. Inherit from HasRedisFields or set "
-                "metaclass to HasRedisFieldsMeta."
-            )
-        return func(self, *args, **kwargs)
-
-    return wrapper
 
 
 class RedisField:
@@ -37,13 +21,21 @@ class RedisField:
         self.serde = serde
         self.key: str = _null_key  # will be overwritten
 
-    @_check_null_key
+    def _check_null_key(self) -> None:
+        if self.key == "__NULL_KEY__":
+            raise TypeError(
+                "Cannot use RedisField outside of a class with "
+                "HasRedisFieldsMeta. Inherit from HasRedisFields or set "
+                "metaclass to HasRedisFieldsMeta."
+            )
+
     def __get__(self, owner: t.Any, ownertype: t.Type) -> t.Any:
+        self._check_null_key()
         value = owner.redis_client.hget(owner.hname, self.key)
         return None if value is None else self.serde.deserialize(value)
 
-    @_check_null_key
     def __set__(self, owner: t.Any, val: t.Any) -> None:
+        self._check_null_key()
         owner.redis_client.hset(owner.hname, self.key, self.serde.serialize(val))
 
 
