@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+# 0.0.4 (2021-08-20)
+
 - First version of generic task utilities. Constants starting with task states
   and a `TaskProtocol` class which defines (some) required properties of
   `Task` objects. Import from `funcx_common.tasks`
