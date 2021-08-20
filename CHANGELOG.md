@@ -12,6 +12,14 @@
   `funcx-common[redis]` to pull in the redis requirement. Installation
   without `reids` will result in `FuncxRedisConnection` and
   `FuncxEndpointTaskQueue` failing to initialize
+- `funcx_common.redis` now provides `RedisField`, a descriptor which is backed by
+  `hset` and `hget` against the owning object's `redis_client` attribute for
+  presistence. Initialization of `RedisField` requires the `HasRedisFieldsMeta`
+  metaclass. `HasRedisFields` may be used to apply this metaclass via
+  inheritance.
+- De/serialization of `RedisField` data can be defined with "serde" objects.
+  `funcx_common.redis` provides: `DEFAULT_SERDE` (strings), `INT_SERDE`,
+  `JSON_SERDE`, and `FuncxRedisEnumSerde` (takes an enum class as an input)
 
 ## 0.0.3 (2021-08-17)
 
