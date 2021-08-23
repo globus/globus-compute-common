@@ -2,7 +2,11 @@
 
 ## Unreleased
 
-# 0.0.4 (2021-08-20)
+## 0.0.5 (2021-08-23)
+
+- Fix mypy type inference on RedisField descriptors
+
+## 0.0.4 (2021-08-20)
 
 - First version of generic task utilities. Constants starting with task states
   and a `TaskProtocol` class which defines (some) required properties of
