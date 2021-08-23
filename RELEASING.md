@@ -1,13 +1,6 @@
 # Releasing a funcx-common Version
 
-Create a pull request which updates the changelog and bumps version in
-setup.cfg
-
-Reviewer merges, then checks out `main` and runs `make release`. This will
-push to pypi and tag the current commit
-
-Reviewer goes to the releases page [1] to write up the release, using the
-changelog
-
-
-[1] [GitHub Releases](https://github.com/funcx-faas/funcx-common/releases)
+1. Bump version in `setup.cfg` and update changelog with version and date
+2. Commit: `git commit -m 'Bump version and changelog for release'`
+3. Tag and publish release: `make release`
+4. Write up the release as a [funcx-common GitHub Release](https://github.com/funcx-faas/funcx-common/releases)
