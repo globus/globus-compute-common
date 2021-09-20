@@ -123,3 +123,17 @@ def test_unsubscribe_and_resubscribe():
     consumer.subscribe(epid)
     res = consumer.get()
     assert res == (epid, t2.task_id)
+
+
+@pytest.mark.skipif(
+    not LOCAL_REDIS_REACHABLE, reason="test requires local redis reachable"
+)
+def test_final_messages_without_unsub():
+    # getting final messages without unsubscribing is an error, as it means
+    # that get_final_messages would never terminate
+    consumer = FuncxRedisPubSub("localhost")
+    epid = str(uuid.uuid1())
+    consumer.subscribe(epid)
+
+    with pytest.raises(ValueError):
+        consumer.get_final_messages()

@@ -42,7 +42,7 @@ class FuncxRedisPubSub(FuncxRedisConnection):
     unsubscribing, ensure clean teardown by calling ``get_final_messages()``.
     """
 
-    def __init__(self, hostname: str, *, port: int = 6379):
+    def __init__(self, hostname: str, *, port: int = 6379) -> None:
         super().__init__(hostname, port=port)
         self.pubsub = self.redis_client.pubsub()
 
@@ -128,7 +128,7 @@ class FuncxRedisPubSub(FuncxRedisConnection):
         return message
 
     @FuncxRedisConnection.log_connection_errors
-    def get(self, timeout: int = 2) -> t.Tuple[str, str]:
+    def get(self, *, timeout: int = 2) -> t.Tuple[str, str]:
         """
         :param timeout: wait time for getting a message, in milliseconds
         :type timeout: int
@@ -145,14 +145,9 @@ class FuncxRedisPubSub(FuncxRedisConnection):
 
         return dest_endpoint, task_id
 
-    @FuncxRedisConnection.log_connection_errors
-    def get_final_messages(
-        self, timeout: int = 2
+    def _final_messages_generator(
+        self, *, timeout: int
     ) -> t.Generator[t.Tuple[str, str], None, None]:
-        """
-        Yield back messages via ``get()`` for as long as the pubsub is marked
-        as subscribed.
-        """
         while self.subscribed:
             try:
                 yield self.get(timeout=timeout)
@@ -161,3 +156,33 @@ class FuncxRedisPubSub(FuncxRedisConnection):
             # but at that point, `self.subscribed` will become False
             except queue.Empty:
                 pass
+
+    def get_final_messages(
+        self, *, timeout: int = 2
+    ) -> t.Generator[t.Tuple[str, str], None, None]:
+        """
+        Yield back messages via ``get()`` for as long as the pubsub is marked
+        as subscribed.
+        """
+        # type-ignore because this is not in the typeshed; TODO: get it added
+        # to typeshed so that this type-checks
+        num_pending_unsub = len(
+            self.pubsub.pending_unsubscribe_channels  # type: ignore
+        )
+        if self.subscribed and (num_pending_unsub < len(self.pubsub.channels)):
+            raise ValueError(
+                "Cannot get final messages on this FuncxRedisPubSub. It has "
+                "not been unsubscribed from all of its channels."
+            )
+
+        # Structure this as a function which returns a generator from another
+        # call, don't use the yield syntax in this function body.
+        # Why?
+        # If we don't do this, the function gets compiled to bytecode for a
+        # generator, and none of the body will be run until the first item is
+        # fetched. That would mean the above ValueError does not get raised
+        # when `get_final_messages()` is called, but when it is first used
+        # instead. The difference is subtle, and may not matter for most
+        # use-cases, but it prevents the possibility of someone thinking that
+        # they've fully unsubscribed when they have not.
+        return self._final_messages_generator(timeout=timeout)
