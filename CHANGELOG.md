@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 0.0.6 (2021-09-20)
+
+- Add `FuncxRedisPubSub`, which provides a pubsub wrapper over the
+  `redis` library's `PubSub` client
+
 ## 0.0.5 (2021-08-23)
 
 - Fix mypy type inference on RedisField descriptors
