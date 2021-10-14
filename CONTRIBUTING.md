@@ -2,6 +2,24 @@
 
 First off, thank you so much for taking the time to contribute! :+1:
 
+## Tool Requirements
+
+- `make`
+- `tox`
+
+Install `tox` with `pipx install tox`
+
+### Recommended
+
+- `scriv`
+- `pre-commit`
+- Docker
+
+Install `scriv` and `pre-commit` with
+
+    pipx install scriv
+    pipx install pre-commit
+
 ## Bugs & Feature Requests
 
 Should be reported as
