@@ -6,9 +6,12 @@ lint:
 test:
 	tox
 
-.PHONY: showvars release
+.PHONY: showvars prepare-release release
 showvars:
 	@echo "FUNCX_COMMON_VERSION=$(FUNCX_COMMON_VERSION)"
+prepare-release:
+	tox -e prepare-release -- --version "$(FUNCX_COMMON_VERSION)"
+	$(EDITOR) CHANGELOG.md
 release:
 	git tag -s "$(FUNCX_COMMON_VERSION)" -m "v$(FUNCX_COMMON_VERSION)"
 	-git push $(shell git rev-parse --abbrev-ref @{push} | cut -d '/' -f1) refs/tags/$(FUNCX_COMMON_VERSION)
