@@ -19,8 +19,8 @@ class FuncxEndpointTaskQueue(HasRedisConnection):
             hostname, port=port, redis_connection_factory=redis_connection_factory
         )
 
-    def _get_str_attrs(self) -> t.List[str]:
-        return [f"endpoint={self.endpoint}"] + super()._get_str_attrs()
+    def _repr_attrs(self) -> t.List[str]:
+        return [f"endpoint={self.endpoint}"] + super()._repr_attrs()
 
     @property
     def queue_name(self) -> str:

@@ -54,11 +54,11 @@ class HasRedisConnection:
         )
         self.redis_client = redis_connection_factory(hostname, port)
 
-    def _get_str_attrs(self) -> t.List[str]:
-        return [str(self.redis_client)]
+    def _repr_attrs(self) -> t.List[str]:
+        return [repr(self.redis_client)]
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(" + ",".join(self._get_str_attrs()) + ")"
+        return f"{self.__class__.__name__}(" + ",".join(self._repr_attrs()) + ")"
 
     @contextlib.contextmanager
     def connection_error_logging(self) -> t.Iterator[None]:
