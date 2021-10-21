@@ -3,7 +3,12 @@ import uuid
 
 import pytest
 
-from funcx_common.redis import FuncxEndpointTaskQueue, HasRedisConnection
+from funcx_common.redis import (
+    FuncxEndpointTaskQueue,
+    FuncxRedisPubSub,
+    default_redis_connection_factory,
+    redis_connection_error_logging,
+)
 from funcx_common.tasks import TaskProtocol, TaskState
 
 try:
@@ -18,19 +23,20 @@ except ImportError:
 def test_cannot_create_connection_without_redis_lib():
     with pytest.raises(RuntimeError):
         # can't create a connection
-        HasRedisConnection("localhost")
+        default_redis_connection_factory()
 
 
 @pytest.mark.skipif(not has_redis, reason="test requires redis lib")
-def test_str_form(monkeypatch):
-    conn_obj = HasRedisConnection("localhost")
-    stred = str(conn_obj)
-    assert stred.startswith("HasRedisConnection(")
-    assert "host=localhost" in stred
-    assert "port=6379" in stred
+def test_pubsub_repr():
+    pubsub = FuncxRedisPubSub()
 
-    q_obj = FuncxEndpointTaskQueue("localhost", "endpoint1")
-    assert "endpoint=endpoint1" in str(q_obj)
+    pubsub_str = repr(pubsub)
+    assert pubsub_str.startswith("FuncxRedisPubSub")
+    assert "host=localhost" in pubsub_str
+    assert "port=6379" in pubsub_str
+
+    q_obj = FuncxEndpointTaskQueue("endpoint1")
+    assert "endpoint=endpoint1" in repr(q_obj)
 
 
 @pytest.mark.skipif(not has_redis, reason="test requires redis lib")
@@ -48,7 +54,7 @@ def test_connection_error_on_enqueue(monkeypatch):
 
     mytask = SimpleInMemoryTask()
     endpoint = str(uuid.uuid1())
-    task_queue = FuncxEndpointTaskQueue("localhost", endpoint)
+    task_queue = FuncxEndpointTaskQueue(endpoint)
 
     # ensure that the error logging wrapper still allows the ConnectionError to
     # propagate
@@ -62,12 +68,12 @@ def test_connection_error_logging(monkeypatch, caplog):
         raise redis.exceptions.ConnectionError("bah humbug!")
 
     monkeypatch.setattr(redis.Redis, "rpush", mock_redis_method)
-    conn_obj = HasRedisConnection("localhost")
+    conn = default_redis_connection_factory()
 
     caplog.set_level(logging.ERROR, logger="funcx_common")
 
     with pytest.raises(redis.exceptions.ConnectionError):
-        with conn_obj.connection_error_logging():
-            conn_obj.redis_client.rpush()  # args don't matter...
+        with redis_connection_error_logging(conn):
+            conn.rpush()  # args don't matter...
 
     assert "ConnectionError while trying to communicate with redis" in caplog.text

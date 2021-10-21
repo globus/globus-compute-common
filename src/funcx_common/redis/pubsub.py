@@ -3,7 +3,10 @@ import queue
 import typing as t
 
 from ..tasks import TaskProtocol, TaskState
-from .connection import _OPT_CONNECTION_FACTORY_T, HasRedisConnection
+from .connection import default_redis_connection_factory
+
+if t.TYPE_CHECKING:
+    import redis
 
 log = logging.getLogger(__name__)
 
@@ -26,7 +29,7 @@ def _queue_name(endpoint_id: str) -> str:
     return f"{_TASK_QUEUE_PREFIX}{endpoint_id}"
 
 
-class FuncxRedisPubSub(HasRedisConnection):
+class FuncxRedisPubSub:
     """
     This class provides a layer over the Redis lib's `PubSub` functionality to
     push and pop messages into an endpoint_id-specific queue.
@@ -42,17 +45,14 @@ class FuncxRedisPubSub(HasRedisConnection):
     unsubscribing, ensure clean teardown by calling ``get_final_messages()``.
     """
 
-    def __init__(
-        self,
-        hostname: str,
-        *,
-        port: int = 6379,
-        redis_connection_factory: _OPT_CONNECTION_FACTORY_T = None,
-    ) -> None:
-        super().__init__(
-            hostname, port=port, redis_connection_factory=redis_connection_factory
-        )
+    def __init__(self, *, redis_client: t.Optional["redis.Redis"] = None) -> None:
+        if redis_client is None:
+            redis_client = default_redis_connection_factory()
+        self.redis_client = redis_client
         self.pubsub = self.redis_client.pubsub()
+
+    def __repr__(self) -> str:
+        return f"FuncxRedisPubSub(redis_client={self.redis_client})"
 
     @property
     def subscribed(self) -> bool:

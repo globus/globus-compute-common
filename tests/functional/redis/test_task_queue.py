@@ -20,7 +20,7 @@ def test_enqueue_and_dequeue_simple_task():
 
     mytask = SimpleInMemoryTask()
     endpoint = str(uuid.uuid1())
-    task_queue = FuncxEndpointTaskQueue("localhost", endpoint)
+    task_queue = FuncxEndpointTaskQueue(endpoint)
 
     assert mytask.endpoint is None
 
@@ -39,7 +39,7 @@ def test_enqueue_and_dequeue_simple_task():
 )
 def test_dequeue_empty_behavior():
     endpoint = str(uuid.uuid1())
-    task_queue = FuncxEndpointTaskQueue("localhost", endpoint)
+    task_queue = FuncxEndpointTaskQueue(endpoint)
 
     with pytest.raises(queue.Empty):
         task_queue.dequeue()
