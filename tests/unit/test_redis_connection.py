@@ -1,8 +1,9 @@
+import logging
 import uuid
 
 import pytest
 
-from funcx_common.redis import FuncxEndpointTaskQueue, FuncxRedisConnection
+from funcx_common.redis import FuncxEndpointTaskQueue, HasRedisConnection
 from funcx_common.tasks import TaskProtocol, TaskState
 
 try:
@@ -17,15 +18,15 @@ except ImportError:
 def test_cannot_create_connection_without_redis_lib():
     with pytest.raises(RuntimeError):
         # can't create a connection
-        FuncxRedisConnection("localhost")
+        HasRedisConnection("localhost")
 
 
 @pytest.mark.skipif(not has_redis, reason="test requires redis lib")
 def test_str_form(monkeypatch):
-    conn_obj = FuncxRedisConnection("localhost")
+    conn_obj = HasRedisConnection("localhost")
     stred = str(conn_obj)
-    assert stred.startswith("FuncxRedisConnection(")
-    assert "hostname=localhost" in stred
+    assert stred.startswith("HasRedisConnection(")
+    assert "host=localhost" in stred
     assert "port=6379" in stred
 
     q_obj = FuncxEndpointTaskQueue("localhost", "endpoint1")
@@ -53,3 +54,20 @@ def test_connection_error_on_enqueue(monkeypatch):
     # propagate
     with pytest.raises(redis.exceptions.ConnectionError):
         task_queue.enqueue(mytask)
+
+
+@pytest.mark.skipif(not has_redis, reason="test requires redis lib")
+def test_connection_error_logging(monkeypatch, caplog):
+    def mock_redis_method(*args, **kwargs):
+        raise redis.exceptions.ConnectionError("bah humbug!")
+
+    monkeypatch.setattr(redis.Redis, "rpush", mock_redis_method)
+    conn_obj = HasRedisConnection("localhost")
+
+    caplog.set_level(logging.ERROR, logger="funcx_common")
+
+    with pytest.raises(redis.exceptions.ConnectionError):
+        with conn_obj.connection_error_logging():
+            conn_obj.redis_client.rpush()  # args don't matter...
+
+    assert "ConnectionError while trying to communicate with redis" in caplog.text

@@ -3,7 +3,7 @@ import queue
 import typing as t
 
 from ..tasks import TaskProtocol, TaskState
-from .connection import FuncxRedisConnection
+from .connection import _OPT_CONNECTION_FACTORY_T, HasRedisConnection
 
 log = logging.getLogger(__name__)
 
@@ -26,7 +26,7 @@ def _queue_name(endpoint_id: str) -> str:
     return f"{_TASK_QUEUE_PREFIX}{endpoint_id}"
 
 
-class FuncxRedisPubSub(FuncxRedisConnection):
+class FuncxRedisPubSub(HasRedisConnection):
     """
     This class provides a layer over the Redis lib's `PubSub` functionality to
     push and pop messages into an endpoint_id-specific queue.
@@ -42,15 +42,22 @@ class FuncxRedisPubSub(FuncxRedisConnection):
     unsubscribing, ensure clean teardown by calling ``get_final_messages()``.
     """
 
-    def __init__(self, hostname: str, *, port: int = 6379) -> None:
-        super().__init__(hostname, port=port)
+    def __init__(
+        self,
+        hostname: str,
+        *,
+        port: int = 6379,
+        redis_connection_factory: _OPT_CONNECTION_FACTORY_T = None,
+    ) -> None:
+        super().__init__(
+            hostname, port=port, redis_connection_factory=redis_connection_factory
+        )
         self.pubsub = self.redis_client.pubsub()
 
     @property
     def subscribed(self) -> bool:
         return bool(self.pubsub.subscribed)
 
-    @FuncxRedisConnection.log_connection_errors
     def put(self, endpoint_id: str, task: TaskProtocol) -> int:
         """
         Put the task ID into the channel for the endpoint.
@@ -73,7 +80,6 @@ class FuncxRedisPubSub(FuncxRedisConnection):
 
         return recipients
 
-    @FuncxRedisConnection.log_connection_errors
     def republish_from_queue(self, endpoint_id: str) -> None:
         """
         Tasks pushed to Redis pubsub channels might have gone unreceived.
@@ -104,7 +110,6 @@ class FuncxRedisPubSub(FuncxRedisConnection):
             # pop the next item
             queue_item = self.redis_client.blpop(q, timeout=1)
 
-    @FuncxRedisConnection.log_connection_errors
     def subscribe(self, endpoint_id: str) -> None:
         channel = _channel_name(endpoint_id)
         log.info("subscribing to %s", channel)
@@ -112,7 +117,6 @@ class FuncxRedisPubSub(FuncxRedisConnection):
         self.pubsub.subscribe(channel)
         self.republish_from_queue(endpoint_id)
 
-    @FuncxRedisConnection.log_connection_errors
     def unsubscribe(self, endpoint_id: str) -> None:
         channel = _channel_name(endpoint_id)
         log.info("unsubscribing from %s", channel)
@@ -127,7 +131,6 @@ class FuncxRedisPubSub(FuncxRedisConnection):
             message = self.pubsub.get_message(timeout=timeout)
         return message
 
-    @FuncxRedisConnection.log_connection_errors
     def get(self, *, timeout: int = 2) -> t.Tuple[str, str]:
         """
         :param timeout: wait time for getting a message, in milliseconds
