@@ -6,7 +6,7 @@ from .base import TaskStorage
 
 class MemoryTaskStorage(TaskStorage):
     """
-    The simplest possible task storage system: an in-memory dictionary.
+    The simplest usable task storage system: an in-memory dictionary.
 
     This is meant to
     - demonstrate a complete implementation of the TaskStorage interface
@@ -36,7 +36,7 @@ class ThresholdedMemoryTaskStorage(MemoryTaskStorage):
     handles strings, and we don't want to do any extra encode/decode passes.
     """
 
-    def __init__(self, result_limit_chars: int = 100) -> None:
+    def __init__(self, *, result_limit_chars: int = 100) -> None:
         self._result_limit_chars = result_limit_chars
         super().__init__()
 

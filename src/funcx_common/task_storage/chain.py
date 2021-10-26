@@ -18,6 +18,9 @@ class ChainedTaskStorage(TaskStorage):
     In this scenario, the fast storage will be tried first for both the store and get
     operations.
 
+    If the fast storage rejects a storage operation, the slow storage will be tried. A
+    failure (exception) would be raised immediately, however.
+
     The assumption here is that the fast storage responds quickly enough that it can be
     checked first in all cases, even without additional context for the call.
     """

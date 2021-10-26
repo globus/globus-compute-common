@@ -14,8 +14,13 @@ class TaskStorage(abc.ABC):
         """
         Store the result of a task.
 
-        If the storage call succeeded, this MUST return True.
-        If the storage call failed, an error may be raised or this may return False.
+        If the storage call succeeded, this returns True.
+        If the storage call was rejected, this returns False.
+        If the call failed, and exception should be raised.
+
+        TaskStorage objects may reject calls without failing. For example, if the
+        storage system is a cache of limited size, filling the cache will lead to
+        rejected storage.
         """
 
     @abc.abstractmethod
@@ -25,3 +30,15 @@ class TaskStorage(abc.ABC):
 
         Returns a string if a result was found, and None otherwise.
         """
+
+
+class NullTaskStorage(TaskStorage):
+    """
+    A TaskStorage which rejects all data and cannot hold data.
+    """
+
+    def store_result(self, task: TaskProtocol, result: str) -> bool:
+        return False
+
+    def get_result(self, task: TaskProtocol) -> t.Optional[str]:
+        return None
