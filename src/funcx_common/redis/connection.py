@@ -1,5 +1,6 @@
 import contextlib
 import logging
+import os
 import typing as t
 
 try:
@@ -10,62 +11,56 @@ except ImportError:
     has_redis = False
 
 log = logging.getLogger(__name__)
-RT = t.TypeVar("RT")
-
-_CONNECTION_FACTORY_T = t.Callable[[str, int], "redis.Redis"]
-_OPT_CONNECTION_FACTORY_T = t.Optional[_CONNECTION_FACTORY_T]
 
 
-def default_redis_connection_factory(hostname: str, port: int) -> "redis.Redis":
-    # defer errors over redis being present/absent until someone actually
-    # tries to construct a connection
-    # this allows general use of `funcx-common` without `redis` installed
+def _check_has_redis() -> None:
+    # defer this error until the caller tries to instantiate a connection or setup the
+    # error log handler, so that imports work even without the 'redis' dependency
     if not has_redis:
         raise RuntimeError(
-            "Cannot construct a redis connection if the 'redis' "
-            "package is not available. Either install it explicitly or install the "
-            "'redis' extra, as in\n"
-            "  pip install 'funcx-common[redis]'"
+            """\
+Cannot import funcx_common.redis if the 'redis' package is not available.
+Either install it explicitly or install the 'redis' extra, as in
+
+    pip install 'funcx-common[redis]'
+
+"""
         )
 
-    return redis.Redis(
-        host=hostname,
-        port=port,
+
+def default_redis_connection_factory(
+    redis_url: t.Optional[str] = None,
+) -> "redis.Redis":
+    """
+    Construct a Redis client for a given redis URL.
+    If no URL is given, the FUNCX_COMMON_REDIS_URL environment variable will be used.
+
+    If no URL is given and the environment variable is not populated,
+
+      redis://localhost:6379
+
+    will be used as the default.
+    """
+    _check_has_redis()
+
+    if redis_url is None:
+        redis_url = os.getenv("FUNCX_COMMON_REDIS_URL", "redis://localhost:6379")
+
+    return redis.Redis.from_url(
+        t.cast(str, redis_url),
         decode_responses=True,
         health_check_interval=30,
     )
 
 
-class HasRedisConnection:
-    """
-    A redis client wrapper which can be used to inherit and provide a
-    working `.redis_client` attribute to child classes.
-    """
+@contextlib.contextmanager
+def redis_connection_error_logging(redis_client: "redis.Redis") -> t.Iterator[None]:
+    _check_has_redis()
 
-    def __init__(
-        self,
-        hostname: str,
-        *,
-        port: int = 6379,
-        redis_connection_factory: _OPT_CONNECTION_FACTORY_T = None,
-    ) -> None:
-        redis_connection_factory = (
-            redis_connection_factory or default_redis_connection_factory
+    try:
+        yield
+    except redis.exceptions.ConnectionError:
+        log.exception(
+            "ConnectionError while trying to communicate with redis, %s", redis_client
         )
-        self.redis_client = redis_connection_factory(hostname, port)
-
-    def _repr_attrs(self) -> t.List[str]:
-        return [repr(self.redis_client)]
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(" + ",".join(self._repr_attrs()) + ")"
-
-    @contextlib.contextmanager
-    def connection_error_logging(self) -> t.Iterator[None]:
-        try:
-            yield
-        except redis.exceptions.ConnectionError:
-            log.exception(
-                "ConnectionError while trying to communicate with redis, %s", self
-            )
-            raise
+        raise

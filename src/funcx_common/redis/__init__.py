@@ -1,4 +1,4 @@
-from .connection import HasRedisConnection, default_redis_connection_factory
+from .connection import default_redis_connection_factory, redis_connection_error_logging
 from .fields import HasRedisFields, HasRedisFieldsMeta, RedisField
 from .pubsub import FuncxRedisPubSub
 from .serde import (
@@ -13,8 +13,8 @@ from .serde import (
 from .task_queue import FuncxEndpointTaskQueue
 
 __all__ = (
-    "HasRedisConnection",
     "default_redis_connection_factory",
+    "redis_connection_error_logging",
     "FuncxEndpointTaskQueue",
     "HasRedisFields",
     "HasRedisFieldsMeta",

@@ -2,25 +2,24 @@ import queue
 import typing as t
 
 from ..tasks import TaskProtocol, TaskState
-from .connection import _OPT_CONNECTION_FACTORY_T, HasRedisConnection
+from .connection import default_redis_connection_factory
+
+if t.TYPE_CHECKING:
+    import redis
 
 
-class FuncxEndpointTaskQueue(HasRedisConnection):
+class FuncxEndpointTaskQueue:
     def __init__(
-        self,
-        hostname: str,
-        endpoint: str,
-        *,
-        port: int = 6379,
-        redis_connection_factory: _OPT_CONNECTION_FACTORY_T = None,
-    ):
+        self, endpoint: str, *, redis_client: t.Optional["redis.Redis"] = None
+    ) -> None:
+        if redis_client is None:
+            redis_client = default_redis_connection_factory()
+        self.redis_client = redis_client
         self.endpoint = endpoint
-        super().__init__(
-            hostname, port=port, redis_connection_factory=redis_connection_factory
-        )
 
-    def _repr_attrs(self) -> t.List[str]:
-        return [f"endpoint={self.endpoint}"] + super()._repr_attrs()
+    def __repr__(self) -> str:
+        attr_str = f"endpoint={self.endpoint},redis_client={self.redis_client}"
+        return f"FuncxEndpointTaskQueue({attr_str})"
 
     @property
     def queue_name(self) -> str:
