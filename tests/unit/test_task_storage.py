@@ -1,10 +1,12 @@
 import uuid
 
+import pytest
 from funcx_common.task_storage import (
     ChainedTaskStorage,
     MemoryTaskStorage,
     NullTaskStorage,
     ThresholdedMemoryTaskStorage,
+    StorageException
 )
 from funcx_common.tasks import TaskProtocol, TaskState
 
@@ -14,6 +16,7 @@ class SimpleInMemoryTask(TaskProtocol):
         self.task_id = str(uuid.uuid1())
         self.endpoint = None
         self.status = TaskState.RECEIVED
+        self.result = None
 
 
 def test_memory_storage_simple():
@@ -22,7 +25,7 @@ def test_memory_storage_simple():
     task = SimpleInMemoryTask()
 
     b = memstore.store_result(task, result)
-    assert b is True
+    assert b is not None
     assert memstore.get_result(task) == result
 
 
@@ -36,12 +39,12 @@ def test_chained_storage_first_success():
     task = SimpleInMemoryTask()
 
     b = chain.store_result(task, result)
-    assert b is True
+    assert b is not None
     assert memstore2.get_result(task) is None
     assert memstore1.get_result(task) == result
     assert chain.get_result(task) == result
 
-
+# @pytest.mark.skip
 def test_thresholded_storage_limit():
     store = ThresholdedMemoryTaskStorage(result_limit_chars=10)
 
@@ -49,14 +52,14 @@ def test_thresholded_storage_limit():
     task = SimpleInMemoryTask()
 
     b = store.store_result(task, result)
-    assert b is True
+    assert b is not None
     assert store.get_result(task) == result
 
     result2 = "result too long for char limit"
     task2 = SimpleInMemoryTask()
 
-    b = store.store_result(task2, result2)
-    assert b is False
+    with pytest.raises(StorageException):
+        b = store.store_result(task2, result2)
     assert store.get_result(task2) is None
 
 
@@ -70,7 +73,7 @@ def test_chained_with_threshold():
     task = SimpleInMemoryTask()
 
     b = chain.store_result(task, result)
-    assert b is True
+    assert b is not None
     assert memstore1.get_result(task) is None
     assert memstore2.get_result(task) == result
     assert chain.get_result(task) == result
@@ -82,9 +85,11 @@ def test_null_storage():
     result = "result"
     task = SimpleInMemoryTask()
 
-    b = store.store_result(task, result)
-    assert b is False
-    assert store.get_result(task) is None
+    with pytest.raises(StorageException):
+        store.store_result(task, result)
+
+    with pytest.raises(StorageException):
+        store.get_result(task)
 
 
 def test_failing_chain_storage():
@@ -96,6 +101,10 @@ def test_failing_chain_storage():
     result = "result"
     task = SimpleInMemoryTask()
 
-    b = chain.store_result(task, result)
-    assert b is False
-    assert chain.get_result(task) is None
+    with pytest.raises(StorageException):
+        b = chain.store_result(task, result)
+    # maybe_todo : Figure out what the behavior here should be
+    # if the storage fails, should it be possible to retrieve
+    # the result?
+    #with pytest.raises(StorageException):
+    #    chain.get_result(task)

@@ -2,6 +2,7 @@ import typing as t
 
 from ..tasks import TaskProtocol
 from .base import TaskStorage
+from .base import StorageException
 
 
 class ChainedTaskStorage(TaskStorage):
@@ -24,19 +25,30 @@ class ChainedTaskStorage(TaskStorage):
     The assumption here is that the fast storage responds quickly enough that it can be
     checked first in all cases, even without additional context for the call.
     """
+    storage_id = 'ChainedTaskStorage'
 
     def __init__(self, *storages: TaskStorage) -> None:
         self._storages = list(storages)
+        self.storage_map = {storage.storage_id: storage for storage in storages}
 
     def store_result(self, task: TaskProtocol, result: str) -> bool:
+        exception_stack = []
         for store in self._storages:
-            if store.store_result(task, result):
-                return True
-        return False
+            try:
+                return store.store_result(task, result)
+            except StorageException as e:
+                exception_stack.append(e)
+                pass
+
+        raise StorageException(f"All storage methods failed to store data: {exception_stack}")
 
     def get_result(self, task: TaskProtocol) -> t.Optional[str]:
+
+        if not task.result:
+            return None
+        print(task)
         for store in self._storages:
-            res = store.get_result(task)
-            if res is not None:
-                return res
+            if store.storage_id in task.result:
+                return store.get_result(task)
+
         return None

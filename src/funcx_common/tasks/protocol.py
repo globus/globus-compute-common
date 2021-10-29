@@ -13,3 +13,4 @@ class TaskProtocol:
     task_id: str
     endpoint: t.Optional[str]
     status: TaskState
+    result: t.Optional[str]

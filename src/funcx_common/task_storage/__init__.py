@@ -1,4 +1,4 @@
-from .base import NullTaskStorage, TaskStorage
+from .base import NullTaskStorage, TaskStorage, StorageException
 from .chain import ChainedTaskStorage
 from .memory import MemoryTaskStorage, ThresholdedMemoryTaskStorage
 
@@ -8,4 +8,5 @@ __all__ = (
     "ChainedTaskStorage",
     "MemoryTaskStorage",
     "ThresholdedMemoryTaskStorage",
+    "StorageException"
 )

@@ -3,6 +3,14 @@ import typing as t
 
 from ..tasks import TaskProtocol
 
+class StorageException(Exception):
+
+    def __init__(self, reason: str):
+        self.reason = reason
+
+    def __str__(self) -> str:
+        return f"Storage request failed due to reason:{self.reason}"
+
 
 class TaskStorage(abc.ABC):
     """
@@ -10,18 +18,19 @@ class TaskStorage(abc.ABC):
     """
 
     @abc.abstractmethod
-    def store_result(self, task: TaskProtocol, result: str) -> bool:
+    def store_result(self, task: TaskProtocol, result: str) -> dict[str, str]:
         """
         Store the result of a task.
 
-        If the storage call succeeded, this returns True.
-        If the storage call was rejected, this returns False.
-        If the call failed, and exception should be raised.
-
-        TaskStorage objects may reject calls without failing. For example, if the
-        storage system is a cache of limited size, filling the cache will lead to
-        rejected storage.
+        If the storage call succeeded, return a reference (dict) to the data
+        If the call failed, an exception would be raised.
         """
+
+    @property
+    @classmethod
+    @abc.abstractmethod
+    def storage_id(cls):
+        return NotImplementedError
 
     @abc.abstractmethod
     def get_result(self, task: TaskProtocol) -> t.Optional[str]:
@@ -29,6 +38,7 @@ class TaskStorage(abc.ABC):
         Get the result of a task.
 
         Returns a string if a result was found, and None otherwise.
+        Raises a storage exception if retrieval failed
         """
 
 
@@ -36,9 +46,10 @@ class NullTaskStorage(TaskStorage):
     """
     A TaskStorage which rejects all data and cannot hold data.
     """
+    storage_id = 'NullTaskStorage'
 
     def store_result(self, task: TaskProtocol, result: str) -> bool:
-        return False
+        raise StorageException("Null storage does not store")
 
     def get_result(self, task: TaskProtocol) -> t.Optional[str]:
-        return None
+        raise StorageException("Null storage does not store")
