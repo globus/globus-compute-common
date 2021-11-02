@@ -22,7 +22,8 @@ class TaskStorage(abc.ABC):
         """
         Store the result of a task.
 
-        If the storage call succeeded, return a reference (dict) to the data
+        If the storage call succeeded, set reference to data in Task.result_reference
+        and return True
         If the call failed, an exception would be raised.
         """
 
