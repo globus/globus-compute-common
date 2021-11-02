@@ -1,8 +1,7 @@
 import typing as t
 
 from ..tasks import TaskProtocol
-from .base import TaskStorage
-from .base import StorageException
+from .base import StorageException, TaskStorage
 
 
 class RedisTaskStorage(TaskStorage):
@@ -14,18 +13,22 @@ class RedisTaskStorage(TaskStorage):
     This relies on the caller having a mechanism in place to store
     values into redis
     """
-    storage_id = 'Redis'
+
+    storage_id = "Redis"
 
     def __init__(self) -> None:
         super().__init__()
 
     def store_result(self, task: TaskProtocol, result: str) -> bool:
         task.result = result
-        task.result_reference = {'storage_id': self.storage_id}
+        task.result_reference = {"storage_id": self.storage_id}
         return True
 
     def get_result(self, task: TaskProtocol) -> t.Optional[str]:
-        if task.result_reference and task.result_reference['storage_id'] == self.storage_id:
+        if (
+            task.result_reference
+            and task.result_reference["storage_id"] == self.storage_id
+        ):
             return task.result
         else:
             raise StorageException(f"Task not stored with {self.storage_id}")
@@ -40,7 +43,8 @@ class ThresholdedRedisTaskStorage(RedisTaskStorage):
     This relies on the caller having a mechanism in place to store
     values into redis
     """
-    storage_id = 'ThresholdedRedis'
+
+    storage_id = "ThresholdedRedis"
 
     def __init__(self, result_limit_chars: int = 100) -> None:
         super().__init__()
@@ -51,4 +55,6 @@ class ThresholdedRedisTaskStorage(RedisTaskStorage):
             task.result = result
             return True
         else:
-            raise StorageException(f"Result size exceeds threshold of {self.result_limit_chars}b")
+            raise StorageException(
+                f"Result size exceeds threshold of {self.result_limit_chars}b"
+            )

@@ -3,8 +3,8 @@ import typing as t
 
 from ..tasks import TaskProtocol
 
-class StorageException(Exception):
 
+class StorageException(Exception):
     def __init__(self, reason: str):
         self.reason = reason
 
@@ -47,7 +47,8 @@ class NullTaskStorage(TaskStorage):
     """
     A TaskStorage which rejects all data and cannot hold data.
     """
-    storage_id = 'NullTaskStorage'
+
+    storage_id = "NullTaskStorage"
 
     def store_result(self, task: TaskProtocol, result: str) -> bool:
         raise StorageException("Null storage does not store")

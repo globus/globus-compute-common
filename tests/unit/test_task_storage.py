@@ -1,13 +1,14 @@
 import uuid
 
 import pytest
+
 from funcx_common.task_storage import (
     ChainedTaskStorage,
     MemoryTaskStorage,
     NullTaskStorage,
-    ThresholdedMemoryTaskStorage,
-    StorageException,
     S3TaskStorage,
+    StorageException,
+    ThresholdedMemoryTaskStorage,
     ThresholdedRedisTaskStorage,
 )
 from funcx_common.tasks import TaskProtocol, TaskState
@@ -46,6 +47,7 @@ def test_chained_storage_first_success():
     assert memstore2.get_result(task) is None
     assert memstore1.get_result(task) == result
     assert chain.get_result(task) == result
+
 
 # @pytest.mark.skip
 def test_thresholded_storage_limit():
@@ -111,12 +113,12 @@ def test_failing_chain_storage():
     # maybe_todo : Figure out what the behavior here should be
     # if the storage fails, should it be possible to retrieve
     # the result?
-    #with pytest.raises(StorageException):
+    # with pytest.raises(StorageException):
     #    chain.get_result(task)
 
 
 def test_s3_task_storage():
-    store = S3TaskStorage('funcx-test-1')
+    store = S3TaskStorage("funcx-test-1")
 
     task = SimpleInMemoryTask()
     result = "Hello World!"
@@ -126,7 +128,7 @@ def test_s3_task_storage():
 
 def test_chained_redis_and_s3():
     store1 = ThresholdedRedisTaskStorage(result_limit_chars=3)
-    store2 = S3TaskStorage('funcx-test-1')
+    store2 = S3TaskStorage("funcx-test-1")
 
     chain = ChainedTaskStorage(store1, store2)
 
@@ -145,7 +147,7 @@ def test_chained_redis_and_s3():
 
 def test_chained_redis_and_s3_no_result():
     store1 = ThresholdedRedisTaskStorage(result_limit_chars=3)
-    store2 = S3TaskStorage('funcx-test-1')
+    store2 = S3TaskStorage("funcx-test-1")
 
     chain = ChainedTaskStorage(store1, store2)
     task = SimpleInMemoryTask()
@@ -156,4 +158,3 @@ def test_chained_redis_and_s3_no_result():
         x = store2.get_result(task)
 
     assert chain.get_result(task) == None
-

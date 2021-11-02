@@ -1,8 +1,9 @@
-from .base import NullTaskStorage, TaskStorage, StorageException
+from .base import NullTaskStorage, StorageException, TaskStorage
 from .chain import ChainedTaskStorage
 from .memory import MemoryTaskStorage, ThresholdedMemoryTaskStorage
-from .s3 import S3TaskStorage
 from .redis import RedisTaskStorage, ThresholdedRedisTaskStorage
+from .s3 import S3TaskStorage
+
 __all__ = (
     "TaskStorage",
     "NullTaskStorage",
@@ -12,5 +13,5 @@ __all__ = (
     "RedisTaskStorage",
     "ThresholdedRedisTaskStorage",
     "S3TaskStorage",
-    "StorageException"
+    "StorageException",
 )
