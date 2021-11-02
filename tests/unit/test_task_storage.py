@@ -109,7 +109,7 @@ def test_failing_chain_storage():
     task = SimpleInMemoryTask()
 
     with pytest.raises(StorageException):
-        b = chain.store_result(task, result)
+        chain.store_result(task, result)
     # maybe_todo : Figure out what the behavior here should be
     # if the storage fails, should it be possible to retrieve
     # the result?
@@ -142,7 +142,7 @@ def test_chained_redis_and_s3():
     assert chain.get_result(task) == result
 
     with pytest.raises(StorageException):
-        x = store1.get_result(task)
+        store1.get_result(task)
 
 
 def test_chained_redis_and_s3_no_result():
@@ -153,8 +153,8 @@ def test_chained_redis_and_s3_no_result():
     task = SimpleInMemoryTask()
 
     with pytest.raises(StorageException):
-        x = store1.get_result(task)
+        store1.get_result(task)
     with pytest.raises(StorageException):
-        x = store2.get_result(task)
+        store2.get_result(task)
 
-    assert chain.get_result(task) == None
+    assert chain.get_result(task) is None

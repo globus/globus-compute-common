@@ -14,13 +14,13 @@ class S3TaskStorage(TaskStorage):
 
     storage_id = "MemoryTaskStorage"
 
-    def __init__(self, bucket_name, *args, **kwargs) -> None:
+    def __init__(self, bucket_name: str) -> None:
         self.bucket_name = bucket_name
-        self.client = boto3.client("s3", *args, **kwargs)
+        self.client = boto3.client("s3")
         self._results: t.Dict[str, str] = {}
 
     def store_result(
-        self, task: TaskProtocol, result: str, ACL="authenticated"
+        self, task: TaskProtocol, result: str, ACL: str = "authenticated"
     ) -> bool:
         key = f"{task.task_id}.result"
         self.client.put_object(  # ACL=ACL,
@@ -44,6 +44,7 @@ class S3TaskStorage(TaskStorage):
                 Bucket=task.result_reference["s3bucket"],
                 Key=task.result_reference["key"],
             )
-            return response["Body"].read().decode("utf-8")
+            # mypy seems to think that the following line does not return a string
+            return response["Body"].read().decode("utf-8")  # type: ignore
         else:
             raise StorageException("Task Result was not stored with MemoryTaskStorage")

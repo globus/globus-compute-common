@@ -18,7 +18,7 @@ class TaskStorage(abc.ABC):
     """
 
     @abc.abstractmethod
-    def store_result(self, task: TaskProtocol, result: str) -> dict[str, str]:
+    def store_result(self, task: TaskProtocol, result: str) -> bool:
         """
         Store the result of a task.
 
@@ -30,8 +30,8 @@ class TaskStorage(abc.ABC):
     @property
     @classmethod
     @abc.abstractmethod
-    def storage_id(cls):
-        return NotImplementedError
+    def storage_id(cls) -> str:
+        return NotImplementedError  # type: ignore
 
     @abc.abstractmethod
     def get_result(self, task: TaskProtocol) -> t.Optional[str]:

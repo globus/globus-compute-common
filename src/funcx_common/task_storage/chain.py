@@ -49,7 +49,7 @@ class ChainedTaskStorage(TaskStorage):
         if not task.result and not task.result_reference:
             return None
         for store in self._storages:
-            if store.storage_id == task.result_reference["storage_id"]:
+            if store.storage_id == task.result_reference["storage_id"]:  # type: ignore
                 return store.get_result(task)
 
         return None
