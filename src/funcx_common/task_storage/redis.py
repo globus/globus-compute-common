@@ -5,7 +5,7 @@ from .base import TaskStorage
 from .base import StorageException
 
 
-class RedisImplicitTaskStorage(TaskStorage):
+class RedisTaskStorage(TaskStorage):
     """
     RedisImplicitTaskStorage stores values in redis by returning the
     target string in a wrapper so that the storage request is reverse
@@ -14,19 +14,24 @@ class RedisImplicitTaskStorage(TaskStorage):
     This relies on the caller having a mechanism in place to store
     values into redis
     """
-    storage_id = 'RedisImplicit'
+    storage_id = 'Redis'
 
     def __init__(self) -> None:
         super().__init__()
 
     def store_result(self, task: TaskProtocol, result: str) -> bool:
-        return {self.storage_id: result}
+        task.result = result
+        task.result_reference = {'storage_id': self.storage_id}
+        return True
 
     def get_result(self, task: TaskProtocol) -> t.Optional[str]:
-        return task.result.get(self.storage_id)
+        if task.result_reference and task.result_reference['storage_id'] == self.storage_id:
+            return task.result
+        else:
+            raise StorageException(f"Task not stored with {self.storage_id}")
 
 
-class ThresholdedRedisImplicitTaskStorage(TaskStorage):
+class ThresholdedRedisTaskStorage(RedisTaskStorage):
     """
     RedisImplicitTaskStorage stores values in redis by returning the
     target string in a wrapper so that the storage request is reverse
@@ -35,7 +40,7 @@ class ThresholdedRedisImplicitTaskStorage(TaskStorage):
     This relies on the caller having a mechanism in place to store
     values into redis
     """
-    storage_id = 'ThresholdedRedisImplicit'
+    storage_id = 'ThresholdedRedis'
 
     def __init__(self, result_limit_chars: int = 100) -> None:
         super().__init__()
@@ -43,9 +48,7 @@ class ThresholdedRedisImplicitTaskStorage(TaskStorage):
 
     def store_result(self, task: TaskProtocol, result: str) -> bool:
         if len(result) <= self.result_limit_chars:
-            return {self.storage_id: result}
+            task.result = result
+            return True
         else:
             raise StorageException(f"Result size exceeds threshold of {self.result_limit_chars}b")
-
-    def get_result(self, task: TaskProtocol) -> t.Optional[str]:
-        return task.result.get(self.storage_id)

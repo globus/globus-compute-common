@@ -11,7 +11,7 @@ class MemoryTaskStorage(TaskStorage):
 
     This is meant to
     - demonstrate a complete implementation of the TaskStorage interface
-    - be usable in testsuites or other contexts which want an in-process storage system
+    - be usable in test-suites or other contexts which want an in-process storage system
     """
     storage_id = 'MemoryTaskStorage'
 
@@ -20,10 +20,14 @@ class MemoryTaskStorage(TaskStorage):
 
     def store_result(self, task: TaskProtocol, result: str) -> bool:
         self._results[task.task_id] = result
-        return {self.storage_id: task.task_id}
+        task.result_reference = {'storage_id': self.storage_id}
+        return True
 
     def get_result(self, task: TaskProtocol) -> t.Optional[str]:
-        return self._results.get(task.task_id)
+        if task.result_reference and task.result_reference['storage_id'] == self.storage_id:
+            return self._results.get(task.task_id)
+        else:
+            raise StorageException("Task Result was not stored with MemoryTaskStorage")
 
 
 class ThresholdedMemoryTaskStorage(MemoryTaskStorage):
@@ -48,4 +52,5 @@ class ThresholdedMemoryTaskStorage(MemoryTaskStorage):
             raise StorageException(f"Result size exceeds threshold of {self._result_limit_chars}b")
 
         self._results[task.task_id] = result
-        return {self.storage_id: task.task_id}
+        task.result_reference = {'storage_id': self.storage_id}
+        return True

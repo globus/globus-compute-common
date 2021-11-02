@@ -43,12 +43,11 @@ class ChainedTaskStorage(TaskStorage):
         raise StorageException(f"All storage methods failed to store data: {exception_stack}")
 
     def get_result(self, task: TaskProtocol) -> t.Optional[str]:
-
-        if not task.result:
+        # We are special casing here because if the
+        if not task.result and not task.result_reference:
             return None
-        print(task)
         for store in self._storages:
-            if store.storage_id in task.result:
+            if store.storage_id == task.result_reference['storage_id']:
                 return store.get_result(task)
 
         return None
