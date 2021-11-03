@@ -158,3 +158,17 @@ def test_chained_redis_and_s3_no_result():
         store2.get_result(task)
 
     assert chain.get_result(task) is None
+
+
+def test_backward_compat_chained_redis_and_s3_no_result():
+    store1 = ThresholdedRedisTaskStorage(result_limit_chars=3)
+    store2 = S3TaskStorage("funcx-test-1")
+
+    chain = ChainedTaskStorage(store1, store2)
+    task = SimpleInMemoryTask()
+
+    result = "Hello World!"
+    task.result = result
+
+    assert store1.get_result(task) == result
+    assert chain.get_result(task) == result
