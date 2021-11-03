@@ -58,7 +58,8 @@ class S3TaskStorage(TaskStorage):
                 Bucket=task.result_reference["s3bucket"],
                 Key=task.result_reference["key"],
             )
-            # mypy seems to think that the following line does not return a string
-            return response["Body"].read().decode("utf-8")  # type: ignore
+
+            body = response["Body"]
+            return t.cast(str, body.read().decode("utf-8"))
         else:
             raise StorageException(f"Task Result was not stored with {self.storage_id}")
