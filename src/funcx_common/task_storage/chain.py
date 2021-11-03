@@ -29,7 +29,9 @@ class ChainedTaskStorage(TaskStorage):
 
     def __init__(self, *storages: TaskStorage) -> None:
         self._storages = list(storages)
-        self.storage_map = {storage.storage_id: storage for storage in storages}
+        self.storage_map: t.Dict[str, TaskStorage] = {
+            storage.storage_id: storage for storage in storages
+        }
         self.backward_compatible_storage = None
         for storage in storages:
             if storage.backward_compatible is True:
@@ -54,12 +56,13 @@ class ChainedTaskStorage(TaskStorage):
         if not task.result and not task.result_reference:
             return None
         # Add backward compatibility with RedisStorage
-        if task.result and not task.result_reference:
+        if task.result:
             if self.backward_compatible_storage is not None:
                 return self.backward_compatible_storage.get_result(task)
 
-        for store in self._storages:
-            if store.storage_id == task.result_reference["storage_id"]:  # type: ignore
-                return store.get_result(task)
+        if task.result_reference:
+            storage_used = task.result_reference["storage_id"]
+            if storage_used in self.storage_map:
+                return self.storage_map[storage_used].get_result(task)
 
-        return None
+        raise StorageException("No result stored")

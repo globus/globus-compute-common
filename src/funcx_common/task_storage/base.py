@@ -31,7 +31,7 @@ class TaskStorage(abc.ABC):
     @classmethod
     @abc.abstractmethod
     def storage_id(cls) -> str:
-        return NotImplementedError  # type: ignore
+        raise NotImplementedError()
 
     @property
     def backward_compatible(cls) -> bool:
