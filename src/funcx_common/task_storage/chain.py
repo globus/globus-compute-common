@@ -52,14 +52,17 @@ class ChainedTaskStorage(TaskStorage):
         )
 
     def get_result(self, task: TaskProtocol) -> t.Optional[str]:
-        # We are special casing here because if the
+        # Return None if result and reference is missing.
         if not task.result and not task.result_reference:
             return None
         # Add backward compatibility with RedisStorage
+        # v0.3.3 and prior would only set task.result
         if task.result:
             if self.backward_compatible_storage is not None:
                 return self.backward_compatible_storage.get_result(task)
 
+        # In v0.3.4+ a result_reference is always set when the result is
+        # stored. The reference indicated the storage mechanism used.
         if task.result_reference:
             storage_used = task.result_reference["storage_id"]
             if storage_used in self.storage_map:
