@@ -29,9 +29,6 @@ class ChainedTaskStorage(TaskStorage):
 
     def __init__(self, *storages: TaskStorage) -> None:
         self.storages = list(storages)
-        self.storage_map: t.Dict[str, TaskStorage] = {
-            storage.storage_id: storage for storage in storages
-        }
         self.backward_compatible_storage = None
         for storage in storages:
             if storage.backward_compatible is True:
@@ -63,8 +60,12 @@ class ChainedTaskStorage(TaskStorage):
         # In v0.3.4+ a result_reference is always set when the result is
         # stored. The reference indicated the storage mechanism used.
         if task.result_reference:
-            storage_used = task.result_reference["storage_id"]
-            if storage_used in self.storage_map:
-                return self.storage_map[storage_used].get_result(task)
+            for storage in self.storages:
+                t_storage_id = task.result_reference["storage_id"]
+                if storage.storage_id == t_storage_id:
+                    try:
+                        return storage.get_result(task)
+                    except StorageException:
+                        pass
 
         raise StorageException("No result stored")
