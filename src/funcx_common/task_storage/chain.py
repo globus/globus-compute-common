@@ -28,7 +28,7 @@ class ChainedTaskStorage(TaskStorage):
     storage_id = "ChainedTaskStorage"
 
     def __init__(self, *storages: TaskStorage) -> None:
-        self._storages = list(storages)
+        self.storages = list(storages)
         self.storage_map: t.Dict[str, TaskStorage] = {
             storage.storage_id: storage for storage in storages
         }
@@ -40,12 +40,11 @@ class ChainedTaskStorage(TaskStorage):
 
     def store_result(self, task: TaskProtocol, result: str) -> bool:
         exception_stack = []
-        for store in self._storages:
+        for store in self.storages:
             try:
                 return store.store_result(task, result)
             except StorageException as e:
                 exception_stack.append(e)
-                pass
 
         raise StorageException(
             f"All storage methods failed to store data: {exception_stack}"
