@@ -15,6 +15,7 @@ class RedisTaskStorage(TaskStorage):
     """
 
     storage_id = "Redis"
+    backward_compatible = True
 
     def __init__(self) -> None:
         super().__init__()
@@ -25,11 +26,16 @@ class RedisTaskStorage(TaskStorage):
         return True
 
     def get_result(self, task: TaskProtocol) -> t.Optional[str]:
-        if (
-            task.result_reference
-            and task.result_reference["storage_id"] == self.storage_id
-        ):
-            return task.result
+        if task.result:
+            # We raise an exception if the result was stored by
+            # a different storage system
+            if (
+                task.result_reference
+                and task.result_reference["storage_id"] != self.storage_id
+            ):
+                raise StorageException(f"Task not stored with {self.storage_id}")
+            else:
+                return task.result
         else:
             raise StorageException(f"Task not stored with {self.storage_id}")
 

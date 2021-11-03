@@ -30,6 +30,11 @@ class ChainedTaskStorage(TaskStorage):
     def __init__(self, *storages: TaskStorage) -> None:
         self._storages = list(storages)
         self.storage_map = {storage.storage_id: storage for storage in storages}
+        self.backward_compatible_storage = None
+        for storage in storages:
+            if storage.backward_compatible is True:
+                self.backward_compatible_storage = storage
+                break
 
     def store_result(self, task: TaskProtocol, result: str) -> bool:
         exception_stack = []
@@ -48,6 +53,11 @@ class ChainedTaskStorage(TaskStorage):
         # We are special casing here because if the
         if not task.result and not task.result_reference:
             return None
+        # Add backward compatibility with RedisStorage
+        if task.result and not task.result_reference:
+            if self.backward_compatible_storage is not None:
+                return self.backward_compatible_storage.get_result(task)
+
         for store in self._storages:
             if store.storage_id == task.result_reference["storage_id"]:  # type: ignore
                 return store.get_result(task)

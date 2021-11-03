@@ -33,6 +33,16 @@ class TaskStorage(abc.ABC):
     def storage_id(cls) -> str:
         return NotImplementedError  # type: ignore
 
+    @property
+    def backward_compatible(cls) -> bool:
+        """
+        Indicates backward compatibility with Task from v0.3.3 and older where
+        Task.result is used without Task.result_reference
+        :return:
+        Bool
+        """
+        return False
+
     @abc.abstractmethod
     def get_result(self, task: TaskProtocol) -> t.Optional[str]:
         """
