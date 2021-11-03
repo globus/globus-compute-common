@@ -1,3 +1,4 @@
+import os
 import uuid
 
 import pytest
@@ -117,6 +118,10 @@ def test_failing_chain_storage():
     #    chain.get_result(task)
 
 
+@pytest.mark.skipif(
+    os.environ.get("AWS_PROFILE") is None,
+    reason="Test requires AWS creds until mock is added",
+)
 def test_s3_task_storage():
     store = S3TaskStorage("funcx-test-1")
 
@@ -126,6 +131,10 @@ def test_s3_task_storage():
     assert store.get_result(task) == result, "Result does not match"
 
 
+@pytest.mark.skipif(
+    os.environ.get("AWS_PROFILE") is None,
+    reason="Test requires AWS creds until mock is added",
+)
 def test_chained_redis_and_s3():
     store1 = ThresholdedRedisTaskStorage(result_limit_chars=3)
     store2 = S3TaskStorage("funcx-test-1")
@@ -145,6 +154,10 @@ def test_chained_redis_and_s3():
         store1.get_result(task)
 
 
+@pytest.mark.skipif(
+    os.environ.get("AWS_PROFILE") is None,
+    reason="Test requires AWS creds until mock is added",
+)
 def test_chained_redis_and_s3_no_result():
     store1 = ThresholdedRedisTaskStorage(result_limit_chars=3)
     store2 = S3TaskStorage("funcx-test-1")
@@ -160,6 +173,10 @@ def test_chained_redis_and_s3_no_result():
     assert chain.get_result(task) is None
 
 
+@pytest.mark.skipif(
+    os.environ.get("AWS_PROFILE") is None,
+    reason="Test requires AWS creds until mock is added",
+)
 def test_backward_compat_chained_redis_and_s3_no_result():
     store1 = ThresholdedRedisTaskStorage(result_limit_chars=3)
     store2 = S3TaskStorage("funcx-test-1")
