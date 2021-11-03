@@ -1,6 +1,11 @@
 import typing as t
 
-import boto3
+try:
+    import boto3
+
+    has_boto3 = True
+except ImportError:
+    has_boto3 = False
 
 from ..tasks import TaskProtocol
 from .base import StorageException, TaskStorage
@@ -15,6 +20,15 @@ class S3TaskStorage(TaskStorage):
     storage_id = "MemoryTaskStorage"
 
     def __init__(self, bucket_name: str) -> None:
+
+        if not has_boto3:
+            raise RuntimeError(
+                "Cannot construct S3TaskStorage object since the boto3"
+                "package is not available. Either install it explicitly or install the "
+                "'boto3' extra, as in\n"
+                "  pip install 'funcx-common[boto3]'"
+            )
+
         self.bucket_name = bucket_name
         self.client = boto3.client("s3")
         self._results: t.Dict[str, str] = {}
