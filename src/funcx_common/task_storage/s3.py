@@ -17,7 +17,7 @@ class S3TaskStorage(TaskStorage):
 
     """
 
-    storage_id = "MemoryTaskStorage"
+    storage_id = "S3TaskStorage"
 
     def __init__(self, bucket_name: str) -> None:
 
@@ -61,4 +61,4 @@ class S3TaskStorage(TaskStorage):
             # mypy seems to think that the following line does not return a string
             return response["Body"].read().decode("utf-8")  # type: ignore
         else:
-            raise StorageException("Task Result was not stored with MemoryTaskStorage")
+            raise StorageException(f"Task Result was not stored with {self.storage_id}")
