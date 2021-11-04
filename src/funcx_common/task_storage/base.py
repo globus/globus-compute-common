@@ -25,7 +25,6 @@ class TaskStorage(abc.ABC):
         If the storage failed, raises StorageException
         """
 
-
     @abc.abstractmethod
     def get_result(self, task: TaskProtocol) -> t.Optional[str]:
         """
