@@ -36,22 +36,23 @@ class RedisS3Storage(TaskStorage):
         self.redis_threshold = redis_threshold
 
     def _store_to_s3(self, task: TaskProtocol, result: str) -> None:
+        key = f"{task.task_id}.result"
         try:
-            key = f"{task.task_id}.result"
             self.client.put_object(
                 Body=result.encode("utf-8"),
                 Bucket=self.bucket_name,
                 Key=key,
             )
+        except botocore.exceptions.ClientError as err:
+            raise StorageException(
+                f"Putting result into s3 for task:{task.task_id} failed"
+            ) from err
+        else:
             task.result_reference = {
                 "storage_id": "s3",
                 "s3bucket": self.bucket_name,
                 "key": key,
             }
-        except Exception:
-            raise StorageException(
-                f"Putting result into s3 for task:{task.task_id} failed"
-            )
 
     def _get_from_s3(self, task: TaskProtocol) -> str:
         assert task.result_reference
