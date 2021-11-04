@@ -53,9 +53,11 @@ class ChainedTaskStorage(TaskStorage):
             return None
         # Add backward compatibility with RedisStorage
         # v0.3.3 and prior would only set task.result
-        if task.result:
-            if self.backward_compatible_storage is not None:
-                return self.backward_compatible_storage.get_result(task)
+        if (
+            task.result_reference is None
+            and self.backward_compatible_storage is not None
+        ):
+            return self.backward_compatible_storage.get_result(task)
 
         # In v0.3.4+ a result_reference is always set when the result is
         # stored. The reference indicated the storage mechanism used.
