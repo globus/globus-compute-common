@@ -13,3 +13,5 @@ class TaskProtocol:
     task_id: str
     endpoint: t.Optional[str]
     status: TaskState
+    result: t.Optional[str]
+    result_reference: t.Optional[t.Dict[str, t.Any]]
