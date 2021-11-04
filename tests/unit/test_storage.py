@@ -50,11 +50,10 @@ def test_bad_reference():
         store.get_result(task)
 
 
-def test_bad_storage():
-    """Confirm exception is raised when a bad storage is used"""
+def test_no_result():
+    """Confirm get_result returns None when there's no result"""
     # We are setting threshold of 0 to force only s3 storage
     store = RedisS3Storage(bucket_name="funcx-test-1", redis_threshold=0)
     task = SimpleInMemoryTask()
 
-    with pytest.raises(StorageException):
-        store.get_result(task)
+    assert store.get_result(task) is None

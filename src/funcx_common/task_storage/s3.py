@@ -1,5 +1,7 @@
 import typing as t
 
+import botocore.exceptions
+
 try:
     import boto3
 
@@ -20,7 +22,7 @@ class RedisS3Storage(TaskStorage):
     def __init__(self, bucket_name: str, redis_threshold: int = 20000) -> None:
         """
         :param bucket_name: Name of the S3 bucket to use
-        :param redis_threshold: Max size of the data that redis accommodates
+        :param redis_threshold: Max size(chars) of the data that redis accommodates
         """
 
         if not has_boto3:
@@ -63,10 +65,10 @@ class RedisS3Storage(TaskStorage):
             )
             body = response["Body"]
             return t.cast(str, body.read().decode("utf-8"))
-        except Exception:
+        except botocore.exceptions.ClientError as err:
             raise StorageException(
                 f"Fetching object from S3 failed for: {task.task_id}"
-            )
+            ) from err
 
     def store_result(
         self,
@@ -80,13 +82,12 @@ class RedisS3Storage(TaskStorage):
             task.result = result
             task.result_reference = {"storage_id": "redis"}
 
-        return
-
     def get_result(self, task: TaskProtocol) -> t.Optional[str]:
         """
 
         :param task:
-        :return: Result if available, else raises a StorageException
+        :return: Results result if available, else returns None
+        Raises StorageException if fetching fails
         """
         # We should be able to safely remove the following block
         # once all tasks launched with v0.3.3 and prior have TTL'ed out
@@ -106,6 +107,4 @@ class RedisS3Storage(TaskStorage):
                     f"Unknown Storage requested: {task.result_reference}"
                 )
         else:
-            # We could return None here, because we know the result is not
-            # set at this point.
-            raise StorageException("Result appears to be not available")
+            return None
