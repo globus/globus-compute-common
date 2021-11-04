@@ -58,8 +58,7 @@ class ThresholdedRedisTaskStorage(RedisTaskStorage):
 
     def store_result(self, task: TaskProtocol, result: str) -> bool:
         if len(result) <= self.result_limit_chars:
-            task.result = result
-            return True
+            return super().store_result(task, result)
         else:
             raise StorageException(
                 f"Result size exceeds threshold of {self.result_limit_chars}b"

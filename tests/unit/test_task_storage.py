@@ -7,6 +7,7 @@ from funcx_common.task_storage import (
     ChainedTaskStorage,
     MemoryTaskStorage,
     NullTaskStorage,
+    RedisTaskStorage,
     S3TaskStorage,
     StorageException,
     ThresholdedMemoryTaskStorage,
@@ -116,6 +117,24 @@ def test_failing_chain_storage():
     # the result?
     # with pytest.raises(StorageException):
     #    chain.get_result(task)
+
+
+def test_redis_variants():
+    store1 = ThresholdedRedisTaskStorage(result_limit_chars=1000)
+    store2 = RedisTaskStorage()
+
+    result = "Hello World!"
+    task1 = SimpleInMemoryTask()
+    task2 = SimpleInMemoryTask()
+
+    store1.store_result(task1, result)
+    store2.store_result(task2, result)
+
+    assert store1.get_result(task1) == result
+    assert task1.result_reference["storage_id"] == store1.storage_id
+
+    assert store2.get_result(task2) == result
+    assert task2.result_reference["storage_id"] == store2.storage_id
 
 
 @pytest.mark.skipif(
