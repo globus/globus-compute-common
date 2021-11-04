@@ -2,6 +2,22 @@
 
 <!-- scriv-insert-here -->
 
+## 0.0.9 (2021-11-04)
+
+### Added
+
+- A new TaskStorage class that is designed to abstract the storage systems for result or payload blobs
+- A RedisS3Storage implementation which is ready for use for storing results.
+
+  - This will store small results in Redis and large results in S3 using a
+    configurable threshold.
+  - The write to redis is implicit, assuming that task objects define `result`
+      as a `RedisField`
+
+- TaskProtocol now defines a new dict attribute: `result_reference`, which is
+  written and read by the TaskStorage component. Tasks must add an
+  implementation of this field to comply with the protocol.
+
 ## 0.0.8 (2021-10-27)
 
 ### Removed
