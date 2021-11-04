@@ -1,9 +1,8 @@
 import typing as t
 
-import botocore.exceptions
-
 try:
     import boto3
+    import botocore.exceptions
 
     has_boto3 = True
 except ImportError:
