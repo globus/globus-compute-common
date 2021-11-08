@@ -57,8 +57,10 @@ def test_s3_storage_bad():
     with pytest.raises(StorageException):
         store.store_result(task, result)
 
-    with pytest.raises(StorageException):
-        store.get_result(task)
+    # because writing failed above, no exception will be seen when reading
+    # to test that, we must either explicitly delete the task data or the bucket
+    # after *successfully* storing the result
+    assert store.get_result(task) is None
 
 
 @pytest.mark.skipif(not has_boto, reason="Test requires boto3 lib")
