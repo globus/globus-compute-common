@@ -119,3 +119,8 @@ def test_differentiator(test_bucket_mock):
 
     assert store.get_result(task2) == result2
     assert task2.result_reference["storage_id"] == "s3"
+
+
+def test_storage_exception_str():
+    err = StorageException("foo")
+    assert str(err).endswith("reason: foo")

@@ -9,7 +9,7 @@ class StorageException(Exception):
         self.reason = reason
 
     def __str__(self) -> str:
-        return f"Storage request failed due to reason:{self.reason}"
+        return f"Storage request failed due to reason: {self.reason}"
 
 
 class TaskStorage(abc.ABC):
