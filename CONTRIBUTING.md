@@ -66,7 +66,7 @@ These are recommendations for contributors:
 ## Adding Changelog Fragments
 
 Any change to the codebase must either include a changelog fragment (in some
-projects these are called "newsfiles") or be in a PR labeled as
+projects these are called "newsfiles") or be in a GitHub PR with the label
 `no-news-is-good-news`.
 
 To create a new changelog fragment, run
