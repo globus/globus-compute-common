@@ -5,6 +5,14 @@ import pytest
 from funcx_common.task_storage import RedisS3Storage, StorageException
 from funcx_common.tasks import TaskProtocol, TaskState
 
+try:
+    import boto3
+    from moto import mock_s3
+
+    has_boto = True
+except ImportError:
+    has_boto = False
+
 
 class SimpleInMemoryTask(TaskProtocol):
     def __init__(self):
@@ -15,9 +23,18 @@ class SimpleInMemoryTask(TaskProtocol):
         self.result_reference = None
 
 
-def test_storage_simple():
+@pytest.fixture
+def test_bucket_mock():
+    with mock_s3():
+        res = boto3.client("s3")
+        res.create_bucket(Bucket="funcx-test-1")
+        yield
+
+
+@pytest.mark.skipif(not has_boto, reason="test requires boto3 lib")
+def test_storage_simple(funcx_s3_bucket):
     # We are setting threshold of 1000 to force storage into redis
-    store = RedisS3Storage(bucket_name="funcx-test-1", redis_threshold=1000)
+    store = RedisS3Storage(bucket_name=funcx_s3_bucket, redis_threshold=1000)
     result = "Hello World!"
     task = SimpleInMemoryTask()
 
@@ -28,8 +45,9 @@ def test_storage_simple():
     assert task.result_reference["storage_id"] == "redis"
 
 
-def test_backward_compat():
-    store = RedisS3Storage(bucket_name="funcx-test-1", redis_threshold=1000)
+@pytest.mark.skipif(not has_boto, reason="test requires boto3 lib")
+def test_backward_compat(funcx_s3_bucket):
+    store = RedisS3Storage(bucket_name=funcx_s3_bucket, redis_threshold=1000)
     result = "Hello World!"
     task = SimpleInMemoryTask()
     task.result = result
@@ -38,8 +56,8 @@ def test_backward_compat():
 
 
 @pytest.mark.xfail(reason="This will fail until we remove backward compat support")
-def test_bad_reference():
-    store = RedisS3Storage(bucket_name="funcx-test-1", redis_threshold=1000)
+def test_bad_reference(funcx_s3_bucket):
+    store = RedisS3Storage(bucket_name=funcx_s3_bucket, redis_threshold=1000)
     result = "Hello World!"
     task = SimpleInMemoryTask()
     task.result = result
@@ -50,10 +68,54 @@ def test_bad_reference():
         store.get_result(task)
 
 
-def test_no_result():
+@pytest.mark.skipif(not has_boto, reason="test requires boto3 lib")
+def test_no_result(funcx_s3_bucket):
     """Confirm get_result returns None when there's no result"""
     # We are setting threshold of 0 to force only s3 storage
-    store = RedisS3Storage(bucket_name="funcx-test-1", redis_threshold=0)
+    store = RedisS3Storage(bucket_name=funcx_s3_bucket, redis_threshold=0)
     task = SimpleInMemoryTask()
 
     assert store.get_result(task) is None
+
+
+@pytest.mark.skipif(has_boto, reason="test only runs without boto3 lib")
+def test_cannot_create_storage_without_boto3_lib(funcx_s3_bucket):
+    with pytest.raises(RuntimeError):
+        # can't create a storage
+        RedisS3Storage(bucket_name=funcx_s3_bucket)
+
+
+@pytest.mark.skipif(not has_boto, reason="test requires boto3 lib")
+def test_s3_storage_simple(test_bucket_mock):
+    """Confirm that data is stored to s3(mock)"""
+    # We are setting threshold of 0 to force only s3 storage
+    store = RedisS3Storage(bucket_name="funcx-test-1", redis_threshold=0)
+    result = "Hello World!"
+    task = SimpleInMemoryTask()
+
+    store.store_result(task, result)
+    assert store.get_result(task) == result
+    assert task.result_reference
+    assert task.result_reference["storage_id"] == "s3"
+
+
+@pytest.mark.skipif(not has_boto, reason="test requires boto3 lib")
+def test_differentiator(test_bucket_mock):
+    """Confirm that the threshold works to pick the right storage target"""
+    # We are setting threshold of 0 to force only s3 storage
+    store = RedisS3Storage(bucket_name="funcx-test-1", redis_threshold=5)
+
+    result1 = "Hi"
+    result2 = "Hello World!"
+    task1 = SimpleInMemoryTask()
+    task2 = SimpleInMemoryTask()
+
+    store.store_result(task1, result1)
+    store.store_result(task2, result2)
+
+    assert store.get_result(task1) == result1
+    assert task1.result == result1
+    assert task1.result_reference["storage_id"] == "redis"
+
+    assert store.get_result(task2) == result2
+    assert task2.result_reference["storage_id"] == "s3"
