@@ -43,7 +43,7 @@ def test_s3_storage(funcx_s3_bucket):
 
 
 @pytest.mark.skipif(not has_boto, reason="Test requires boto3 lib")
-def test_s3_storage_bad():
+def test_s3_storage_bad_bucket():
     """Confirm exception on bad S3 target"""
 
     # generate a random bucket name which is almost certain not to exist
@@ -60,6 +60,7 @@ def test_s3_storage_bad():
     # because writing failed above, no exception will be seen when reading
     # to test that, we must either explicitly delete the task data or the bucket
     # after *successfully* storing the result
+    # see the "deleted data" test below for that scenario
     assert store.get_result(task) is None
 
 
@@ -77,3 +78,21 @@ def test_s3_storage_direct(funcx_s3_bucket):
     response = s3_client.list_objects(Bucket=funcx_s3_bucket, Prefix=task.task_id)
     assert response["Contents"]
     assert len(response["Contents"]) == 1
+
+
+@pytest.mark.skipif(not has_boto, reason="Test requires boto3 lib")
+def test_s3_storage_deleted_data(funcx_s3_bucket):
+    store = RedisS3Storage(bucket_name=funcx_s3_bucket, redis_threshold=0)
+    result = "Hello World!"
+    task = SimpleInMemoryTask()
+
+    store.store_result(task, result)
+
+    # explicit delete from S3
+    s3_client = boto3.client("s3")
+    s3_client.delete_object(
+        Bucket=task.result_reference["s3bucket"], Key=task.result_reference["key"]
+    )
+
+    with pytest.raises(StorageException):
+        store.get_result(task)
