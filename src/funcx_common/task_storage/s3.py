@@ -121,7 +121,8 @@ class RedisS3Storage(TaskStorage):
 
             # The following is redundant now while the block above
             # for backward compat exists
-            elif task.result_reference["storage_id"] == "redis":
+            # remove the pragma once this is an active codepath
+            elif task.result_reference["storage_id"] == "redis":  # pragma: no cover
                 return task.result
             else:
                 raise StorageException(

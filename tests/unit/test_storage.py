@@ -150,6 +150,20 @@ def test_s3_task_with_invalid_reference(test_bucket_mock, storage_attrs):
         store.get_result(task)
 
 
+@pytest.mark.skipif(not has_boto, reason="test requires boto3 lib")
+def test_task_with_unknown_storage(test_bucket_mock):
+    store = RedisS3Storage(bucket_name="funcx-test-1", redis_threshold=0)
+
+    result = "Hello World!"
+    task = SimpleInMemoryTask()
+    store.store_result(task, result)
+    assert task.result_reference["storage_id"] == "s3"
+    task.result_reference["storage_id"] = "UnknownFakeStorageType"
+
+    with pytest.raises(StorageException):
+        store.get_result(task)
+
+
 def test_storage_exception_str():
     err = StorageException("foo")
     assert str(err).endswith("reason: foo")
