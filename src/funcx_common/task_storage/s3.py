@@ -56,18 +56,40 @@ class RedisS3Storage(TaskStorage):
             }
 
     def _get_from_s3(self, task: TaskProtocol) -> str:
-        assert task.result_reference
-        try:
-            response = self.client.get_object(
-                Bucket=task.result_reference["s3bucket"],
-                Key=task.result_reference["key"],
+        result_ref = task.result_reference
+        if result_ref is None:  # pragma: no cover
+            raise StorageException(
+                f"task {task.task_id} result reference was None inside of _get_from_s3"
             )
-            body = response["Body"]
-            return t.cast(str, body.read().decode("utf-8"))
+        try:
+            bucket = result_ref["s3bucket"]
+            key = result_ref["key"]
+        except KeyError as err:
+            raise StorageException(
+                "task {task.task_id} result_reference pointed to S3, but was missing "
+                "s3bucket or key"
+            ) from err
+
+        if not isinstance(bucket, str):
+            raise StorageException(
+                "task {task.task_id} result_reference pointed to S3, "
+                f"but s3bucket was of type {type(bucket)} (expected string)"
+            )
+
+        if not isinstance(key, str):
+            raise StorageException(
+                "task {task.task_id} result_reference pointed to S3, "
+                f"but key was of type {type(key)} (expected string)"
+            )
+
+        try:
+            response = self.client.get_object(Bucket=bucket, Key=key)
         except botocore.exceptions.ClientError as err:
             raise StorageException(
                 f"Fetching object from S3 failed for: {task.task_id}"
             ) from err
+        body = response["Body"]
+        return t.cast(str, body.read().decode("utf-8"))
 
     def store_result(
         self,

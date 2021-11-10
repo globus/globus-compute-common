@@ -121,6 +121,35 @@ def test_differentiator(test_bucket_mock):
     assert task2.result_reference["storage_id"] == "s3"
 
 
+@pytest.mark.skipif(not has_boto, reason="test requires boto3 lib")
+@pytest.mark.parametrize(
+    "storage_attrs",
+    [
+        {"s3bucket": {"do": "del"}, "key": {"do": "del"}},
+        {"s3bucket": {"do": "del"}},
+        {"key": {"do": "del"}},
+        {"s3bucket": {"do": "set", "val": None}},
+        {"key": {"do": "set", "val": None}},
+    ],
+)
+def test_s3_task_with_invalid_reference(test_bucket_mock, storage_attrs):
+    store = RedisS3Storage(bucket_name="funcx-test-1", redis_threshold=0)
+
+    result = "Hello World!"
+    task = SimpleInMemoryTask()
+    store.store_result(task, result)
+
+    assert task.result_reference["storage_id"] == "s3"
+    for key, action in storage_attrs.items():
+        if action["do"] == "del":
+            del task.result_reference[key]
+        elif action["do"] == "set":
+            task.result_reference[key] = action["val"]
+
+    with pytest.raises(StorageException):
+        store.get_result(task)
+
+
 def test_storage_exception_str():
     err = StorageException("foo")
     assert str(err).endswith("reason: foo")
