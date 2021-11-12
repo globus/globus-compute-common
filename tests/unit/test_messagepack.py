@@ -5,16 +5,19 @@ import uuid
 import pytest
 
 from funcx_common.messagepack import (
-    EPStatusReport,
-    Heartbeat,
-    HeartbeatReq,
     InvalidMessagePayloadError,
-    ManagerStatusReport,
     Message,
     MessagePacker,
     MessageType,
-    Task,
     UnrecognizedMessageTypeError,
+)
+from funcx_common.messagepack.message_types import (
+    EPStatusReport,
+    Heartbeat,
+    HeartbeatReq,
+    ManagerStatusReport,
+    ResultsAck,
+    Task,
 )
 
 ID_ZERO = uuid.UUID(int=0)
@@ -160,6 +163,18 @@ def test_can_pack_and_unpack_ep_status_report_v0(v0_packer, ep_status, task_stat
     assert report2.task_statuses == task_statuses
 
 
+def test_can_pack_and_unpack_resultsack_v0(v0_packer):
+    ack = ResultsAck(str(ID_ZERO))
+
+    on_wire = v0_packer.pack(ack)
+    header = get_v0_header(MessageType.RESULTS_ACK)
+    payload = str(ID_ZERO).encode("ascii")
+    assert on_wire == header + payload
+
+    ack2 = v0_packer.unpack(on_wire)
+    assert ack2.task_id == str(ID_ZERO)
+
+
 @pytest.mark.parametrize(
     "message_type, message",
     [
@@ -186,6 +201,8 @@ def test_can_pack_and_unpack_ep_status_report_v0(v0_packer, ep_status, task_stat
         (MessageType.EP_STATUS_REPORT, ID_ZERO.bytes + b"[{},null]"),
         (MessageType.EP_STATUS_REPORT, ID_ZERO.bytes + b"[null,{}]"),
         (MessageType.EP_STATUS_REPORT, ID_ZERO.bytes + b"[{},{},{}]"),
+        (MessageType.RESULTS_ACK, b""),
+        (MessageType.RESULTS_ACK, b"foo"),
     ],
 )
 def test_invalid_v0_unpack(message_type, message, v0_packer):
