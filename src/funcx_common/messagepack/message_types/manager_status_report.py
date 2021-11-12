@@ -2,7 +2,7 @@ import json
 import typing as t
 
 from ..common import Message, MessageType
-from ..exceptions import InvalidMessagePayloadError
+from ..exceptions import InvalidMessageError, InvalidMessagePayloadError
 
 
 class ManagerStatusReport(Message):
@@ -14,6 +14,11 @@ class ManagerStatusReport(Message):
     message_type = MessageType.MANAGER_STATUS_REPORT
 
     def __init__(self, task_statuses: t.Dict[str, t.Any], container_switch_count: int):
+        if not isinstance(task_statuses, dict):
+            raise InvalidMessageError(
+                "EPStatusReport inner json data was improperly shaped"
+            )
+
         self.task_statuses = task_statuses
         self.container_switch_count = container_switch_count
 

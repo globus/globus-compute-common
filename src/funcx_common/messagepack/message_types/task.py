@@ -2,7 +2,7 @@ import typing as t
 import uuid
 
 from ..common import Message, MessageType
-from ..exceptions import InvalidMessagePayloadError
+from ..exceptions import InvalidMessageError, InvalidMessagePayloadError
 
 
 class Task(Message):
@@ -15,6 +15,19 @@ class Task(Message):
         task_buffer: str,
         raw_buffer: t.Optional[bytes] = None,
     ):
+        try:
+            uuid.UUID(task_id)
+        except ValueError as e:
+            raise InvalidMessageError(
+                "Task message task_id does not appear to be a UUID"
+            ) from e
+        try:
+            uuid.UUID(container_id)
+        except ValueError as e:
+            raise InvalidMessageError(
+                "Task message container_id does not appear to be a UUID"
+            ) from e
+
         self.task_id = task_id
         self.container_id = container_id
         self.task_buffer = task_buffer
@@ -45,17 +58,4 @@ class Task(Message):
         tid = tid[4:]
         cid = cid[4:]
 
-        try:
-            uuid.UUID(tid)
-        except ValueError as e:
-            raise InvalidMessagePayloadError(
-                "Task data contains TID which does not appear to be a UUID"
-            ) from e
-
-        try:
-            uuid.UUID(cid)
-        except ValueError as e:
-            raise InvalidMessagePayloadError(
-                "Task data contains CID which does not appear to be a UUID"
-            ) from e
         return cls(tid, cid, task_buf, raw_buffer=buf)

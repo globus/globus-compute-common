@@ -1,5 +1,9 @@
 from .common import Message, MessageType
-from .exceptions import InvalidMessagePayloadError, UnrecognizedMessageTypeError
+from .exceptions import (
+    InvalidMessageError,
+    InvalidMessagePayloadError,
+    UnrecognizedMessageTypeError,
+)
 from .packer import MessagePacker
 
 __all__ = (
@@ -9,6 +13,7 @@ __all__ = (
     "Message",
     "MessageType",
     # errors
+    "InvalidMessageError",
     "InvalidMessagePayloadError",
     "UnrecognizedMessageTypeError",
 )

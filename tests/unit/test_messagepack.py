@@ -5,7 +5,7 @@ import uuid
 import pytest
 
 from funcx_common.messagepack import (
-    InvalidMessagePayloadError,
+    InvalidMessageError,
     Message,
     MessagePacker,
     MessageType,
@@ -191,6 +191,7 @@ def test_can_pack_and_unpack_resultsack_v0(v0_packer):
         (MessageType.MANAGER_STATUS_REPORT, b"foo"),
         (MessageType.MANAGER_STATUS_REPORT, VALID_CSC_SEGMENT),
         (MessageType.MANAGER_STATUS_REPORT, VALID_CSC_SEGMENT + b"{"),
+        (MessageType.MANAGER_STATUS_REPORT, VALID_CSC_SEGMENT + b"[]"),
         (MessageType.EP_STATUS_REPORT, b"foo"),
         (MessageType.EP_STATUS_REPORT, b"foo" * 10),
         (MessageType.EP_STATUS_REPORT, ID_ZERO.bytes + b"{"),
@@ -207,5 +208,5 @@ def test_can_pack_and_unpack_resultsack_v0(v0_packer):
 )
 def test_invalid_v0_unpack(message_type, message, v0_packer):
     header = get_v0_header(message_type)
-    with pytest.raises(InvalidMessagePayloadError):
+    with pytest.raises(InvalidMessageError):
         v0_packer.unpack(header + message)

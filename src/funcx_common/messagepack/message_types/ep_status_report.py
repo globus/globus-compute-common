@@ -3,7 +3,7 @@ import typing as t
 import uuid
 
 from ..common import Message, MessageType
-from ..exceptions import InvalidMessagePayloadError
+from ..exceptions import InvalidMessageError, InvalidMessagePayloadError
 
 
 class EPStatusReport(Message):
@@ -21,6 +21,11 @@ class EPStatusReport(Message):
         ep_status_report: t.Dict[str, t.Any],
         task_statuses: t.Dict[str, t.Any],
     ) -> None:
+        if not (isinstance(ep_status_report, dict) and isinstance(task_statuses, dict)):
+            raise InvalidMessageError(
+                "EPStatusReport inner json data was improperly shaped"
+            )
+
         self.endpoint_id = endpoint_id
         self.ep_status = ep_status_report
         self.task_statuses = task_statuses
@@ -69,9 +74,4 @@ class EPStatusReport(Message):
             )
 
         ep_status, task_statuses = loaded_json
-        if not (isinstance(ep_status, dict) and isinstance(task_statuses, dict)):
-            raise InvalidMessagePayloadError(
-                "EPStatusReport inner json data was improperly shaped"
-            )
-
         return cls(endpoint_id, ep_status, task_statuses)
