@@ -1,6 +1,12 @@
 from .common import Message, MessageType
-from .exceptions import UnrecognizedMessageTypeError
-from .message_types import HeartbeatReq, Task
+from .exceptions import InvalidMessagePayloadError, UnrecognizedMessageTypeError
+from .message_types import (
+    EPStatusReport,
+    Heartbeat,
+    HeartbeatReq,
+    ManagerStatusReport,
+    Task,
+)
 from .packer import MessagePacker
 
 __all__ = (
@@ -10,8 +16,12 @@ __all__ = (
     "Message",
     "MessageType",
     # message types
-    "Task",
+    "EPStatusReport",
+    "Heartbeat",
     "HeartbeatReq",
+    "ManagerStatusReport",
+    "Task",
     # errors
+    "InvalidMessagePayloadError",
     "UnrecognizedMessageTypeError",
 )

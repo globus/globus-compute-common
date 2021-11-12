@@ -1,6 +1,8 @@
 import typing as t
+import uuid
 
 from ..common import Message, MessageType
+from ..exceptions import InvalidMessagePayloadError
 
 
 class Task(Message):
@@ -29,5 +31,31 @@ class Task(Message):
 
     @classmethod
     def load_v0_body(cls, buf: bytes) -> "Task":
-        b_tid, b_cid, task_buf = buf.decode("utf-8").split(";", 2)
-        return cls(b_tid[4:], b_cid[4:], task_buf, raw_buffer=buf)
+        data = buf.decode("utf-8")
+        if data.count(";") < 2:
+            raise InvalidMessagePayloadError(
+                "Task body did not contain enough ';' delimiters"
+            )
+        tid, cid, task_buf = buf.decode("utf-8").split(";", 2)
+
+        if len(tid) < 4 or len(cid) < 4:
+            raise InvalidMessagePayloadError("Task body TID or CID appear invalid")
+
+        # trim "TID=" and "CID=" from the front
+        tid = tid[4:]
+        cid = cid[4:]
+
+        try:
+            uuid.UUID(tid)
+        except ValueError as e:
+            raise InvalidMessagePayloadError(
+                "Task data contains TID which does not appear to be a UUID"
+            ) from e
+
+        try:
+            uuid.UUID(cid)
+        except ValueError as e:
+            raise InvalidMessagePayloadError(
+                "Task data contains CID which does not appear to be a UUID"
+            ) from e
+        return cls(tid, cid, task_buf, raw_buffer=buf)

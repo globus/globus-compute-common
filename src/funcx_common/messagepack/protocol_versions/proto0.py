@@ -27,7 +27,7 @@ from struct import Struct
 
 from ..common import Message, MessageType
 from ..exceptions import UnrecognizedMessageTypeError
-from ..message_types import HeartbeatReq, Task
+from ..message_types import ALL_MESSAGE_TYPES
 from ..protocol import MessagePackProtocol
 
 _MESSAGE_TYPE_FORMATTER = Struct("b")
@@ -57,5 +57,5 @@ class MessagePackProtocolV0(MessagePackProtocol):
         cls.MESSAGE_TYPE_MAP[message_class.message_type] = message_class
 
 
-MessagePackProtocolV0.register_message_type(HeartbeatReq)
-MessagePackProtocolV0.register_message_type(Task)
+for m in ALL_MESSAGE_TYPES:
+    MessagePackProtocolV0.register_message_type(m)
