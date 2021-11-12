@@ -64,21 +64,6 @@ detailed here.
 ### Messages do not pack themselves
 
 Under `funcx-endpoint`, messages are objects providing implementations of
-`pack()` and `unpack()` as a method and classmethod.  and `funcx-endpoint`
-"messages"
-
-messagepack is based off of message definitions provided by `funcx-endpoint`
-and is meant to be fully interchangeable.
-
-The on-the-wire format for v0 of the protocol is an exact match for the
-wire-format provided by the `funcx-endpoint` messages.
-
-However, the python objects provided by this module have some key differences,
-detailed here.
-
-### Messages do not pack themselves
-
-Under `funcx-endpoint`, messages are objects providing implementations of
 `pack()` and `unpack()` as a method and classmethod. In order to have protocol
 version dispatch handled by a central source, and to disentangle common and
 message-specific details, this is no longer the case.
