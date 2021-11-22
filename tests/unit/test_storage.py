@@ -2,7 +2,12 @@ import uuid
 
 import pytest
 
-from funcx_common.task_storage import RedisS3Storage, StorageException
+from funcx_common.task_storage import (
+    ImplicitRedisStorage,
+    RedisS3Storage,
+    StorageException,
+    get_default_task_storage,
+)
 from funcx_common.tasks import TaskProtocol, TaskState
 
 try:
@@ -29,6 +34,55 @@ def test_bucket_mock():
         res = boto3.client("s3")
         res.create_bucket(Bucket="funcx-test-1")
         yield
+
+
+@pytest.mark.skipif(not has_boto, reason="test requires boto3 lib")
+def test_default_task_storage_s3(funcx_s3_bucket, monkeypatch):
+    monkeypatch.setenv("FUNCX_S3_BUCKET_NAME", funcx_s3_bucket)
+    monkeypatch.delenv("FUNCX_REDIS_STORAGE_THRESHOLD", raising=False)
+
+    store = get_default_task_storage()
+    assert isinstance(store, RedisS3Storage)
+    assert store.redis_threshold == 20000  # default value
+
+    # now set a threshold and confirm it gets picked up
+    monkeypatch.setenv("FUNCX_REDIS_STORAGE_THRESHOLD", "100")
+    store = get_default_task_storage()
+    assert isinstance(store, RedisS3Storage)
+    assert store.redis_threshold == 100
+
+    # now set an invalid threshold value; confirm that it is ignored
+    monkeypatch.setenv("FUNCX_REDIS_STORAGE_THRESHOLD", "foo")
+    store = get_default_task_storage()
+    assert isinstance(store, RedisS3Storage)
+    assert store.redis_threshold == 20000  # default value
+
+
+def test_default_task_storage_redis(monkeypatch):
+    # no env vars set -> ImplicitRedisStorage
+    monkeypatch.delenv("FUNCX_S3_BUCKET_NAME", raising=False)
+    monkeypatch.delenv("FUNCX_REDIS_STORAGE_THRESHOLD", raising=False)
+
+    store = get_default_task_storage()
+    assert isinstance(store, ImplicitRedisStorage)
+
+    # confirm that setting a threshold does not change behavior
+    # (because bucket is not set)
+    monkeypatch.setenv("FUNCX_REDIS_STORAGE_THRESHOLD", "100")
+    store = get_default_task_storage()
+    assert isinstance(store, ImplicitRedisStorage)
+
+
+# this test technically doesn't need to have boto3 installed, but requiring it ensures
+# that in the failure case, we will get clearer messages
+@pytest.mark.skipif(not has_boto, reason="test requires boto3 lib")
+def test_default_task_storage_redis_from_threshold(funcx_s3_bucket, monkeypatch):
+    # bucket=... but threshold=-1 -> ImplicitRedisStorage
+    monkeypatch.setenv("FUNCX_S3_BUCKET_NAME", funcx_s3_bucket)
+    monkeypatch.setenv("FUNCX_REDIS_STORAGE_THRESHOLD", "-1")
+
+    store = get_default_task_storage()
+    assert isinstance(store, ImplicitRedisStorage)
 
 
 @pytest.mark.skipif(not has_boto, reason="test requires boto3 lib")
@@ -82,7 +136,7 @@ def test_no_result(funcx_s3_bucket):
 def test_cannot_create_storage_without_boto3_lib(funcx_s3_bucket):
     with pytest.raises(RuntimeError):
         # can't create a storage
-        RedisS3Storage(bucket_name=funcx_s3_bucket)
+        RedisS3Storage(bucket_name=funcx_s3_bucket, redis_threshold=0)
 
 
 @pytest.mark.skipif(not has_boto, reason="test requires boto3 lib")
