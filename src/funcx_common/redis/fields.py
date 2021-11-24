@@ -29,7 +29,7 @@ class RedisField:
                 "metaclass to HasRedisFieldsMeta."
             )
 
-    def __get__(self, owner: t.Any, ownertype: t.Type) -> t.Any:
+    def __get__(self, owner: t.Any, ownertype: t.Type[t.Any]) -> t.Any:
         self._check_null_key()
         value = owner.redis_client.hget(owner.hname, self.key)
         return None if value is None else self.serde.deserialize(value)

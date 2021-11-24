@@ -30,7 +30,7 @@ Either install it explicitly or install the 'redis' extra, as in
 
 def default_redis_connection_factory(
     redis_url: t.Optional[str] = None,
-) -> "redis.Redis":
+) -> "redis.Redis[t.Any]":
     """
     Construct a Redis client for a given redis URL.
     If no URL is given, the FUNCX_COMMON_REDIS_URL environment variable will be used.
@@ -54,7 +54,9 @@ def default_redis_connection_factory(
 
 
 @contextlib.contextmanager
-def redis_connection_error_logging(redis_client: "redis.Redis") -> t.Iterator[None]:
+def redis_connection_error_logging(
+    redis_client: "redis.Redis[t.Any]",
+) -> t.Iterator[None]:
     _check_has_redis()
 
     try:

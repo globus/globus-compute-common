@@ -10,7 +10,7 @@ if t.TYPE_CHECKING:
 
 class FuncxEndpointTaskQueue:
     def __init__(
-        self, endpoint: str, *, redis_client: t.Optional["redis.Redis"] = None
+        self, endpoint: str, *, redis_client: t.Optional["redis.Redis[t.Any]"] = None
     ) -> None:
         if redis_client is None:
             redis_client = default_redis_connection_factory()
