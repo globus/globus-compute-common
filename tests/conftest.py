@@ -14,11 +14,15 @@ def pytest_addoption(parser):
 
 
 @pytest.fixture
-def funcx_s3_bucket(pytestconfig):
+def funcx_s3_bucket(pytestconfig, monkeypatch):
     value = pytestconfig.getoption("--funcx-s3-bucket")
+
     if value is not None:
-        return value[0]
-    return value
+        value = value[0]
+        monkeypatch.setenv("FUNCX_S3_BUCKET_NAME", value)
+        return value
+
+    return None
 
 
 @pytest.fixture(autouse=True)

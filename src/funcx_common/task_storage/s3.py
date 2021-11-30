@@ -10,6 +10,7 @@ except ImportError:
 
 from ..tasks import TaskProtocol
 from .base import StorageException, TaskStorage
+from .redis import ImplicitRedisStorage
 
 
 class RedisS3Storage(TaskStorage):
@@ -18,7 +19,7 @@ class RedisS3Storage(TaskStorage):
     Uses Redis to store objects below of size threshold, and S3 for the rest
     """
 
-    def __init__(self, bucket_name: str, redis_threshold: int = 20000) -> None:
+    def __init__(self, *, bucket_name: str, redis_threshold: int) -> None:
         """
         :param bucket_name: Name of the S3 bucket to use
         :param redis_threshold: Max size(chars) of the data that redis accommodates
@@ -34,7 +35,9 @@ class RedisS3Storage(TaskStorage):
 
         self.bucket_name = bucket_name
         self.client = boto3.client("s3")
+
         self.redis_threshold = redis_threshold
+        self.redis_storage = ImplicitRedisStorage()
 
     def _store_to_s3(self, task: TaskProtocol, result: str) -> None:
         key = f"{task.task_id}.result"
@@ -100,8 +103,7 @@ class RedisS3Storage(TaskStorage):
             # Task is too big for Redis, store in S3
             self._store_to_s3(task, result)
         else:
-            task.result = result
-            task.result_reference = {"storage_id": "redis"}
+            self.redis_storage.store_result(task, result)
 
     def get_result(self, task: TaskProtocol) -> t.Optional[str]:
         """
@@ -123,7 +125,7 @@ class RedisS3Storage(TaskStorage):
             # for backward compat exists
             # remove the pragma once this is an active codepath
             elif task.result_reference["storage_id"] == "redis":  # pragma: no cover
-                return task.result
+                return self.redis_storage.get_result(task)
             else:
                 raise StorageException(
                     f"Unknown Storage requested: {task.result_reference}"
