@@ -53,9 +53,8 @@ def test_default_task_storage_s3(funcx_s3_bucket, monkeypatch):
 
     # now set an invalid threshold value; confirm that it is ignored
     monkeypatch.setenv("FUNCX_REDIS_STORAGE_THRESHOLD", "foo")
-    store = get_default_task_storage()
-    assert isinstance(store, RedisS3Storage)
-    assert store.redis_threshold == 20000  # default value
+    with pytest.raises(ValueError):
+        store = get_default_task_storage()
 
 
 def test_default_task_storage_redis(monkeypatch):

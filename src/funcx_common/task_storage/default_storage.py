@@ -1,13 +1,9 @@
-import logging
 import os
 import typing as t
 
 from .base import TaskStorage
 from .redis import ImplicitRedisStorage
 from .s3 import RedisS3Storage
-
-log = logging.getLogger(__name__)
-
 
 DEFAULT_REDIS_STORAGE_THRESHOLD: int = 20000
 
@@ -17,12 +13,10 @@ def _get_redis_storage_threshold() -> int:
     if val is not None:
         try:
             return int(val)
-        except ValueError:
-            log.warning(
-                "could not parse FUNCX_REDIS_STORAGE_THRESHOLD=%s as int, "
-                "will failover to default",
-                val,
-            )
+        except ValueError as err:
+            raise ValueError(
+                f"could not parse FUNCX_REDIS_STORAGE_THRESHOLD={val} as int"
+            ) from err
     return DEFAULT_REDIS_STORAGE_THRESHOLD
 
 
