@@ -45,7 +45,9 @@ class FuncxRedisPubSub:
     unsubscribing, ensure clean teardown by calling ``get_final_messages()``.
     """
 
-    def __init__(self, *, redis_client: t.Optional["redis.Redis"] = None) -> None:
+    def __init__(
+        self, *, redis_client: t.Optional["redis.Redis[t.Any]"] = None
+    ) -> None:
         if redis_client is None:
             redis_client = default_redis_connection_factory()
         self.redis_client = redis_client
@@ -122,7 +124,7 @@ class FuncxRedisPubSub:
         log.info("unsubscribing from %s", channel)
         self.pubsub.unsubscribe(channel)
 
-    def _get_message(self, timeout: float) -> t.Optional[dict]:
+    def _get_message(self, timeout: float) -> t.Optional[t.Dict[str, t.Any]]:
         # skip any subscribe/unsubscribe messages, but do not use the
         # 'ignore_subscribe_messages' flag because it behaves by returning
         # `None` rather than advancing to the next message

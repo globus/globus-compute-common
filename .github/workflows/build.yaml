@@ -37,4 +37,4 @@ jobs:
         if: matrix.python-version == '3.9'
         run: python -m tox -e lint,mypy
       - name: test
-        run: python -m tox -e py,py-noredis -- --cov-report="term-missing:skip-covered"
+        run: python -m tox -e py,py-nodeps -- --cov-report="term-missing:skip-covered"

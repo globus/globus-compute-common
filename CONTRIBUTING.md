@@ -62,3 +62,16 @@ These are recommendations for contributors:
 
   - Include tests for any new or changed functionality
   - Use type annotations liberally
+
+## Adding Changelog Fragments
+
+Any change to the codebase must either include a changelog fragment (in some
+projects these are called "newsfiles") or be in a GitHub PR with the label
+`no-news-is-good-news`.
+
+To create a new changelog fragment, run
+
+    scriv create --edit
+
+and populate the fragment. It will include comments which instruct you on how
+to fill out the fragment.
