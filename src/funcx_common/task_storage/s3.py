@@ -1,4 +1,5 @@
 import typing as t
+from enum import Enum
 
 try:
     import boto3
@@ -11,6 +12,11 @@ except ImportError:
 from ..tasks import TaskProtocol
 from .base import StorageException, TaskStorage
 from .redis import ImplicitRedisStorage
+
+
+class Kind(Enum):
+    result = 1
+    payload = 2
 
 
 class RedisS3Storage(TaskStorage):
@@ -38,9 +44,11 @@ class RedisS3Storage(TaskStorage):
 
         self.redis_threshold = redis_threshold
         self.redis_storage = ImplicitRedisStorage()
+        self.storable_kinds = ("result", "payload")
 
-    def _store_to_s3(self, task: TaskProtocol, result: str) -> None:
-        key = f"{task.task_id}.result"
+    def _store_to_s3(self, task: TaskProtocol, kind: Kind, result: str) -> None:
+
+        key = f"{task.task_id}.{kind.name}"
         try:
             self.client.put_object(
                 Body=result.encode("utf-8"),
@@ -49,39 +57,41 @@ class RedisS3Storage(TaskStorage):
             )
         except botocore.exceptions.ClientError as err:
             raise StorageException(
-                f"Putting result into s3 for task:{task.task_id} failed"
+                f"Putting {kind.name} into s3 for task:{task.task_id} failed"
             ) from err
         else:
-            task.result_reference = {
+            reference = {
                 "storage_id": "s3",
                 "s3bucket": self.bucket_name,
                 "key": key,
             }
+            setattr(task, f"{kind.name}_reference", reference)
 
-    def _get_from_s3(self, task: TaskProtocol) -> str:
-        result_ref = task.result_reference
-        if result_ref is None:  # pragma: no cover
+    def _get_from_s3(self, task: TaskProtocol, kind: Kind) -> str:
+
+        reference = getattr(task, f"{kind.name}_reference")
+        if reference is None:  # pragma: no cover
             raise StorageException(
                 f"task {task.task_id} result reference was None inside of _get_from_s3"
             )
         try:
-            bucket = result_ref["s3bucket"]
-            key = result_ref["key"]
+            bucket = reference["s3bucket"]
+            key = reference["key"]
         except KeyError as err:
             raise StorageException(
-                "task {task.task_id} result_reference pointed to S3, but was missing "
-                "s3bucket or key"
+                f"task {task.task_id} {kind.name}_reference pointed to S3, "
+                "but was missing s3bucket or key"
             ) from err
 
         if not isinstance(bucket, str):
             raise StorageException(
-                "task {task.task_id} result_reference pointed to S3, "
+                f"task {task.task_id} {kind.name}_reference pointed to S3, "
                 f"but s3bucket was of type {type(bucket)} (expected string)"
             )
 
         if not isinstance(key, str):
             raise StorageException(
-                "task {task.task_id} result_reference pointed to S3, "
+                f"task {task.task_id} {kind.name}_reference pointed to S3, "
                 f"but key was of type {type(key)} (expected string)"
             )
 
@@ -101,7 +111,7 @@ class RedisS3Storage(TaskStorage):
     ) -> None:
         if len(result) > self.redis_threshold:
             # Task is too big for Redis, store in S3
-            self._store_to_s3(task, result)
+            self._store_to_s3(task, Kind.result, result)
         else:
             self.redis_storage.store_result(task, result)
 
@@ -119,7 +129,7 @@ class RedisS3Storage(TaskStorage):
 
         if task.result_reference:
             if task.result_reference["storage_id"] == "s3":
-                return self._get_from_s3(task)
+                return self._get_from_s3(task, Kind.result)
 
             # The following is redundant now while the block above
             # for backward compat exists
@@ -129,6 +139,41 @@ class RedisS3Storage(TaskStorage):
             else:
                 raise StorageException(
                     f"Unknown Storage requested: {task.result_reference}"
+                )
+        else:
+            return None
+
+    def store_payload(self, task: TaskProtocol, payload: str) -> None:
+        if len(payload) > self.redis_threshold:
+            # Task is too big for Redis, store in S3
+            self._store_to_s3(task, Kind.payload, payload)
+        else:
+            self.redis_storage.store_payload(task, payload)
+
+    def get_payload(self, task: TaskProtocol) -> t.Optional[str]:
+        """
+
+        :param task:
+        :return: Results payload if available, else returns None
+        Raises StorageException if fetching fails
+        """
+        # We should be able to safely remove the following block
+        # once all tasks launched with v0.3.3 and prior have TTL'ed out
+        if task.payload:
+            return task.payload
+
+        if task.payload_reference:
+            if task.payload_reference["storage_id"] == "s3":
+                return self._get_from_s3(task, Kind.payload)
+
+            # The following is redundant now while the block above
+            # for backward compat exists
+            # remove the pragma once this is an active codepath
+            elif task.payload_reference["storage_id"] == "redis":  # pragma: no cover
+                return self.redis_storage.get_payload(task)
+            else:
+                raise StorageException(
+                    f"Unknown Storage requested: {task.payload_reference}"
                 )
         else:
             return None
