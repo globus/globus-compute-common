@@ -24,3 +24,16 @@ class ImplicitRedisStorage(TaskStorage):
         if task.result:
             return task.result
         return None
+
+    def store_payload(
+        self,
+        task: TaskProtocol,
+        payload: str,
+    ) -> None:
+        task.payload = payload
+        task.payload_reference = {"storage_id": "redis"}
+
+    def get_payload(self, task: TaskProtocol) -> t.Optional[str]:
+        if task.payload:
+            return task.payload
+        return None
