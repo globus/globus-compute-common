@@ -26,6 +26,8 @@ class SimpleInMemoryTask(TaskProtocol):
         self.status = TaskState.RECEIVED
         self.result = None
         self.result_reference = None
+        self.payload = None
+        self.payload_reference = None
 
 
 @pytest.fixture
@@ -139,6 +141,20 @@ def test_cannot_create_storage_without_boto3_lib(funcx_s3_bucket):
 
 
 @pytest.mark.skipif(not has_boto, reason="test requires boto3 lib")
+def test_s3_storage_simple_payload(test_bucket_mock):
+    """Confirm that payload data is stored to s3(mock)"""
+    # We are setting threshold of 0 to force only s3 storage
+    store = RedisS3Storage(bucket_name="funcx-test-1", redis_threshold=0)
+    payload = "Hello World!"
+    task = SimpleInMemoryTask()
+
+    store.store_payload(task, payload)
+    assert store.get_payload(task) == payload
+    assert task.payload_reference
+    assert task.payload_reference["storage_id"] == "s3"
+
+
+@pytest.mark.skipif(not has_boto, reason="test requires boto3 lib")
 def test_s3_storage_simple(test_bucket_mock):
     """Confirm that data is stored to s3(mock)"""
     # We are setting threshold of 0 to force only s3 storage
@@ -188,8 +204,10 @@ def test_differentiator(test_bucket_mock):
 def test_s3_task_with_invalid_reference(test_bucket_mock, storage_attrs):
     store = RedisS3Storage(bucket_name="funcx-test-1", redis_threshold=0)
 
+    payload = "Hello Payload"
     result = "Hello World!"
     task = SimpleInMemoryTask()
+    store.store_payload(task, payload)
     store.store_result(task, result)
 
     assert task.result_reference["storage_id"] == "s3"
@@ -201,6 +219,15 @@ def test_s3_task_with_invalid_reference(test_bucket_mock, storage_attrs):
 
     with pytest.raises(StorageException):
         store.get_result(task)
+
+    for key, action in storage_attrs.items():
+        if action["do"] == "del":
+            del task.payload_reference[key]
+        elif action["do"] == "set":
+            task.payload_reference[key] = action["val"]
+
+    with pytest.raises(StorageException):
+        store.get_payload(task)
 
 
 @pytest.mark.skipif(not has_boto, reason="test requires boto3 lib")
@@ -220,3 +247,65 @@ def test_task_with_unknown_storage(test_bucket_mock):
 def test_storage_exception_str():
     err = StorageException("foo")
     assert str(err).endswith("reason: foo")
+
+
+@pytest.mark.skipif(not has_boto, reason="test requires boto3 lib")
+def test_differentiator_payload(test_bucket_mock):
+    """Confirm that the threshold works to pick the right storage target
+    for payloads"""
+    # We are setting threshold of 0 to force only s3 storage
+    store = RedisS3Storage(bucket_name="funcx-test-1", redis_threshold=5)
+
+    payload1 = "Hi"
+    payload2 = "Hello World!"
+    task1 = SimpleInMemoryTask()
+    task2 = SimpleInMemoryTask()
+
+    store.store_payload(task1, payload1)
+    store.store_payload(task2, payload2)
+
+    assert store.get_payload(task1) == payload1
+    assert task1.payload == payload1
+    assert task1.payload_reference["storage_id"] == "redis"
+
+    assert store.get_payload(task2) == payload2
+    assert task2.payload_reference["storage_id"] == "s3"
+
+
+@pytest.mark.skipif(not has_boto, reason="test requires boto3 lib")
+def test_internal(test_bucket_mock):
+    """Test internal methods"""
+    # We are setting threshold of 0 to force only s3 storage
+    store = RedisS3Storage(bucket_name="funcx-test-1", redis_threshold=5)
+
+    payload1 = "Hi"
+    result1 = "Hi"
+    payload2 = "Hello World!"
+    result2 = "Hello World!"
+    task1 = SimpleInMemoryTask()
+    task2 = SimpleInMemoryTask()
+    from funcx_common.task_storage.s3 import StorageFieldName
+
+    store._store_to_s3(task1, StorageFieldName.payload, payload1)
+    store._store_to_s3(task1, StorageFieldName.result, result1)
+    store._store_to_s3(task2, StorageFieldName.payload, payload2)
+    store._store_to_s3(task2, StorageFieldName.result, result2)
+
+    assert store._get_from_s3(task1, StorageFieldName.payload) == payload1
+    assert store._get_from_s3(task1, StorageFieldName.result) == result1
+    assert store._get_from_s3(task2, StorageFieldName.payload) == payload2
+    assert store._get_from_s3(task2, StorageFieldName.result) == result2
+
+
+@pytest.mark.skipif(not has_boto, reason="test requires boto3 lib")
+def test_task_with_unknown_storage_for_payload(test_bucket_mock):
+    store = RedisS3Storage(bucket_name="funcx-test-1", redis_threshold=0)
+
+    result = "Hello World!"
+    task = SimpleInMemoryTask()
+    store.store_payload(task, result)
+    assert task.payload_reference["storage_id"] == "s3"
+    task.payload_reference["storage_id"] = "UnknownFakeStorageType"
+
+    with pytest.raises(StorageException):
+        store.get_payload(task)
