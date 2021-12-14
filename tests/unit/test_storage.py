@@ -284,17 +284,17 @@ def test_internal(test_bucket_mock):
     result2 = "Hello World!"
     task1 = SimpleInMemoryTask()
     task2 = SimpleInMemoryTask()
-    from funcx_common.task_storage.s3 import Kind
+    from funcx_common.task_storage.s3 import StorageFieldName
 
-    store._store_to_s3(task1, Kind.payload, payload1)
-    store._store_to_s3(task1, Kind.result, result1)
-    store._store_to_s3(task2, Kind.payload, payload2)
-    store._store_to_s3(task2, Kind.result, result2)
+    store._store_to_s3(task1, StorageFieldName.payload, payload1)
+    store._store_to_s3(task1, StorageFieldName.result, result1)
+    store._store_to_s3(task2, StorageFieldName.payload, payload2)
+    store._store_to_s3(task2, StorageFieldName.result, result2)
 
-    assert store._get_from_s3(task1, Kind.payload) == payload1
-    assert store._get_from_s3(task1, Kind.result) == result1
-    assert store._get_from_s3(task2, Kind.payload) == payload2
-    assert store._get_from_s3(task2, Kind.result) == result2
+    assert store._get_from_s3(task1, StorageFieldName.payload) == payload1
+    assert store._get_from_s3(task1, StorageFieldName.result) == result1
+    assert store._get_from_s3(task2, StorageFieldName.payload) == payload2
+    assert store._get_from_s3(task2, StorageFieldName.result) == result2
 
 
 @pytest.mark.skipif(not has_boto, reason="test requires boto3 lib")
