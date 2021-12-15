@@ -2,6 +2,15 @@
 
 <!-- scriv-insert-here -->
 
+## 0.0.11-a0 (2021-12-15)
+
+This is an alpha release intended for testing only.
+
+### Added
+
+- `funcx_common.task_storage.TaskStorage` and its child classes (`ImplicitRedisStorage` and
+    `RedisS3Storage`) now support `store_payload` and `get_payload` methods.
+
 ## 0.0.10 (2021-11-30)
 
 ### Added
