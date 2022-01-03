@@ -23,7 +23,7 @@ class RedisTask(TaskProtocol, metaclass=HasRedisFieldsMeta):
 
     Creation:
       Create a new task by instantiating this class, e.g.
-      >>> RedisTask(reids_client, "foo_id")
+      >>> RedisTask(redis_client, "foo_id")
 
     Loading:
       Read a task from storage using the `load()` classmethod, e.g.
@@ -36,8 +36,8 @@ class RedisTask(TaskProtocol, metaclass=HasRedisFieldsMeta):
       Traceback (most recent call last):
         ...
       ValueError: Cannot load task foo_id: does not exist
-      >>> RedisTask(reids_client, "foo_id")  # ok
-      >>> RedisTask(reids_client, "foo_id")
+      >>> RedisTask(redis_client, "foo_id")  # ok
+      >>> RedisTask(redis_client, "foo_id")
       Traceback (most recent call last):
         ...
       ValueError: Conflict. Cannot create task foo_id: already exists
@@ -60,14 +60,19 @@ class RedisTask(TaskProtocol, metaclass=HasRedisFieldsMeta):
     # 2 weeks in seconds
     DEFAULT_TTL: t.ClassVar[int] = 1209600
 
+    # required fields
+    # TODO: when `required=True` is supported in `RedisField`, set it for all of these
     status = t.cast(TaskState, RedisField(serde=FuncxRedisEnumSerde(TaskState)))
     internal_status = t.cast(
         InternalTaskState, RedisField(serde=FuncxRedisEnumSerde(InternalTaskState))
     )
     user_id = t.cast(int, RedisField(serde=INT_SERDE))
-    function_id = t.cast(t.Optional[str], RedisField())
-    endpoint = t.cast(t.Optional[str], RedisField())
+    function_id = t.cast(str, RedisField())
     container = t.cast(str, RedisField())
+    task_group_id = t.cast(str, RedisField())
+    # end required fields
+
+    endpoint = t.cast(t.Optional[str], RedisField())
 
     # FIXME: `payload` is a string which is currently being round-tripped through the
     # JSON_SERDE. However, we cannot remove the use of the serde until we are prepared
@@ -94,7 +99,6 @@ class RedisTask(TaskProtocol, metaclass=HasRedisFieldsMeta):
     )
     exception = t.cast(t.Optional[str], RedisField())
     completion_time = t.cast(t.Optional[str], RedisField())
-    task_group_id = t.cast(t.Optional[str], RedisField())
 
     def __init__(
         self,

@@ -75,7 +75,7 @@ def test_redis_task_cannot_increase_ttl(redis_client):
     assert (RedisTask.DEFAULT_TTL - task.ttl) < 1
 
 
-def test_redis_task_existece_and_deletion(redis_client):
+def test_redis_task_existence_and_deletion(redis_client):
     task_id = str(uuid.uuid1())
 
     task = RedisTask(redis_client, task_id)  # create
