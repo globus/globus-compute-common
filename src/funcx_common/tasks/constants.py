@@ -10,3 +10,8 @@ class TaskState(str, enum.Enum):
     RUNNING = "running"
     SUCCESS = "success"
     FAILED = "failed"
+
+
+class InternalTaskState(str, enum.Enum):
+    INCOMPLETE = "incomplete"
+    COMPLETE = "complete"
