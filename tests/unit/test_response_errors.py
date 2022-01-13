@@ -16,7 +16,9 @@ from funcx_common.response_errors import (
     FunctionNotFound,
     FunctionNotPermitted,
     FuncxResponseError,
+    InsufficientAuthScope,
     InternalError,
+    InvalidAuthToken,
     InvalidUUID,
     LivenessStatsError,
     RequestKeyError,
@@ -46,7 +48,14 @@ def test_pack_error():
     assert data["http_status_code"] == 401
 
 
-@pytest.mark.parametrize("err_cls", [UserUnauthenticated])
+@pytest.mark.parametrize(
+    "err_cls",
+    [
+        UserUnauthenticated,
+        InvalidAuthToken,
+        InsufficientAuthScope,
+    ],
+)
 def test_unpack_inverts_pack_noargs(err_cls):
     _check_pack_and_unpack(err_cls())
 

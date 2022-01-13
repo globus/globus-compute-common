@@ -28,6 +28,8 @@ class ResponseErrorCode(IntEnum):
     TASK_GROUP_NOT_FOUND = 20
     TASK_GROUP_ACCESS_FORBIDDEN = 21
     INVALID_UUID = 22
+    INVALID_AUTH_TOKEN = 23
+    INSUFFICIENT_AUTH_SCOPE = 24
 
 
 # a collection of the HTTP status error codes that the service would make use of
