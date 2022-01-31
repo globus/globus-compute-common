@@ -297,3 +297,25 @@ class InvalidUUID(FuncxResponseError):
     def __init__(self, reason: str) -> None:
         self.error_args = [reason]
         self.reason = reason
+
+
+class InvalidAuthToken(FuncxResponseError):
+    """Invalid auth token sent in request"""
+
+    code = ResponseErrorCode.INVALID_AUTH_TOKEN
+    http_status_code = HTTPStatusCode.UNAUTHORIZED
+
+    def __init__(self) -> None:
+        self.error_args = []
+        self.reason = "Credentials are invalid"
+
+
+class InsufficientAuthScope(FuncxResponseError):
+    """Invalid auth token sent in request"""
+
+    code = ResponseErrorCode.INSUFFICIENT_AUTH_SCOPE
+    http_status_code = HTTPStatusCode.FORBIDDEN
+
+    def __init__(self) -> None:
+        self.error_args = []
+        self.reason = "Insufficient scope for this action"
