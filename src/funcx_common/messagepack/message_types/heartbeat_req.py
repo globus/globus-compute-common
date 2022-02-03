@@ -1,12 +1,10 @@
-from ..common import Message, MessageType
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+from ..common import Message
 
 
+@dataclass
 class HeartbeatReq(Message):
-    message_type = MessageType.HEARTBEAT_REQ
-
-    def get_v0_body(self) -> bytes:
-        return b""
-
-    @classmethod
-    def load_v0_body(cls, buf: bytes) -> "HeartbeatReq":
-        return cls()
+    message_type = "heartbeat_req"

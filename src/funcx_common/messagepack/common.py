@@ -1,36 +1,32 @@
-import abc
-import enum
+from __future__ import annotations
+
 import typing as t
+import uuid
+from dataclasses import asdict, dataclass, fields
+
+from .validators import get_validator
 
 
-class MessageType(enum.Enum):
-    HEARTBEAT_REQ = 1
-    HEARTBEAT = 2
-    EP_STATUS_REPORT = 3
-    MANAGER_STATUS_REPORT = 4
-    TASK = 5
-    RESULTS_ACK = 6
+def _convert_json_unsafe(data: t.Any) -> t.Any:
+    if isinstance(data, dict):
+        return {k: _convert_json_unsafe(v) for k, v in data.items()}
+    elif isinstance(data, list):
+        return [_convert_json_unsafe(x) for x in data]
+    elif isinstance(data, uuid.UUID):
+        return str(data)
+    else:
+        return data
 
 
-class Message(abc.ABC):
-    message_type: t.ClassVar[MessageType]
+@dataclass
+class Message:
+    message_type: t.ClassVar[str]
 
-    @abc.abstractmethod
-    def get_v0_body(self) -> bytes:
-        """
-        Under v0 of the messagepack protocol, each message type must define its own
-        payload body.
+    def __post_init__(self) -> None:
+        for field_obj in fields(self):
+            validator = get_validator(field_obj)
+            if validator:
+                validator(self, field_obj.name)
 
-        This is because the method by which a body is encoded and parsed varies by
-        message type.
-        """
-        raise NotImplementedError()
-
-    @classmethod
-    @abc.abstractmethod
-    def load_v0_body(cls, buf: bytes) -> "Message":
-        """
-        Under v0 of the messagepack protocol, each message type must define its own
-        payload body parsing. The reason is the same as the existence of `get_v0_body`
-        """
-        raise NotImplementedError()
+    def get_json_safe_dict(self) -> dict[str, t.Any]:
+        return t.cast(t.Dict[str, t.Any], _convert_json_unsafe(asdict(self)))
