@@ -17,5 +17,12 @@ class InvalidMessagePayloadError(InvalidMessageError):
     """
     When attempting to unpack a message, an invalid payload was encountered.
 
-    It was not even possible to start message construction with the payload.
+    It was not possible to perform message construction with the payload.
+    """
+
+
+class UnrecognizedProtocolVersion(InvalidMessageError):
+    """
+    When attempting to unpack a message, found a protocol version which was not
+    supported.
     """

@@ -1,8 +1,9 @@
-from .common import Message, MessageType
+from .common import Message
 from .exceptions import (
     InvalidMessageError,
     InvalidMessagePayloadError,
     UnrecognizedMessageTypeError,
+    UnrecognizedProtocolVersion,
 )
 from .packer import MessagePacker
 
@@ -11,9 +12,9 @@ __all__ = (
     "MessagePacker",
     # common data
     "Message",
-    "MessageType",
     # errors
     "InvalidMessageError",
     "InvalidMessagePayloadError",
     "UnrecognizedMessageTypeError",
+    "UnrecognizedProtocolVersion",
 )

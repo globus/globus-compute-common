@@ -3,8 +3,8 @@
 This subpackage defines a message passing protocol for funcx endpoints and the
 forwarder to exchange information, called "messagepack".
 
-Today, only the v0 implementation of the protocol exists, but under wrappers
-which, in theory, could be used to support future protocol versions.
+Today, only the v1 implementation of the protocol exists, but under wrappers
+which could be used to support future protocol versions.
 
 ## Protocol Support, send and receive
 
@@ -15,48 +15,32 @@ with readers of the messages.
 When receiving a message, the first step is always to attempt to determine the
 protocol version.
 
-## Version Detection (v0 vs other versions)
+## Version Detection
 
-In v0 of the protocol, messages are packed bytes with no header, wrapper, or
-other version information.
+The first byte of a message is the version byte. It contains a single
+big-endian unsigned integer, and can be read without unpacking the message to
+get the version of the protocol to use.
 
-Under future versions, an explicit protocol version field will be added.
+## Versions
 
-As a result, the detection logic, until the removal of v0, will be as follows:
-- Attempt to detect a protocol_version
-- If detection fails, protocol_version=0
-- Otherwise, protocol_version=<detected>
+### Protocol Version 0
 
-## Proposed Protocol Version 1
+A v0 of the protocol was implemented in the past, but it was removed.
 
-This section defines a proposal for Version 1 of the messagepack protocol.
+### Protocol Version 1
 
-v1 of the protocol does the following:
-- messages are encoded as JSON objects
-- the "protocol_version" field of the objects is always `1` (as an int)
-- there is a "message_type" field which contains a string of the message type
+In v1 of the protocol, messages are JSON payloads with a two byte header.
+The first byte is the version byte, and the second byte is a reserved byte
+for future use. It may be used for flags or other information.
 
-For example, under protocol v1, a heartbeat request message can be formulated as
+The rest of the payload contains a JSON document with no newlines.
 
-    {"protocol_version": 1, "message_type": "HEARTBEAT_REQ"}
-
-A Task message can be formulated as
-
-    {
-        "protocol_version": 1,
-        "message_type": "TASK",
-        "task_id": task_id,
-        "container_id": container_id,
-        "task_buffer": task_buffer
-    }
+Multiple messages can therefore be streamed using newlines as the delimiter.
 
 ## Differences between messagepack and `funcx-endpoint` "messages"
 
 messagepack is based off of message definitions provided by `funcx-endpoint`
-and is meant to be fully interchangeable.
-
-The on-the-wire format for v0 of the protocol is an exact match for the
-wire-format provided by the `funcx-endpoint` messages.
+and is meant as a replacement.
 
 However, the python objects provided by this module have some key differences,
 detailed here.
@@ -78,12 +62,7 @@ Instead, a `MessagePacker` object is used to pack and unpack messages. i.e.
 
     MessagePacker().pack(Task())
 
-On the unpacking side, the `MessagePacker` can `unpack(buf: bytes)`. This
-solves the multiple-dispatch between types (an enum) and classes in a cleaner
-way.
-
-However, each message must provide its own v0 implementation, as these vary too
-much to be implemented by the protocol object in a unified way.
+On the unpacking side, the `MessagePacker` can `unpack(buf: bytes)`.
 
 ### Message attribute and method changes
 

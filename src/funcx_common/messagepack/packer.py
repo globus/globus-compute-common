@@ -1,25 +1,27 @@
-import typing as t
+from __future__ import annotations
 
 from .common import Message
+from .exceptions import UnrecognizedProtocolVersion
 from .protocol import MessagePackProtocol
-from .protocol_versions.proto0 import MessagePackProtocolV0
+from .protocol_versions.proto1 import MessagePackProtocolV1
 
 
 class MessagePacker:
-    IMPLEMENTATIONS: t.Dict[int, MessagePackProtocol] = {
-        0: MessagePackProtocolV0(),
+    IMPLEMENTATIONS: dict[int, MessagePackProtocol] = {
+        1: MessagePackProtocolV1(),
     }
 
-    def __init__(self, default_protocol_version: int = 0) -> None:
-        self._default_protocol_version = 0
+    def __init__(self, default_protocol_version: int = 1) -> None:
+        self._default_protocol_version = default_protocol_version
 
-    # TODO: when new protocol versions are added, replace with protocol detection logic
     def detect_protocol_version(self, buf: bytes) -> int:
-        return 0
+        """read the first byte of the buffer and decode it"""
+        if not buf:
+            raise ValueError("cannot detect_protocol_version on empty data")
+        version_byte = buf[0:1]
+        return int.from_bytes(version_byte, byteorder="big", signed=False)
 
-    def pack(
-        self, message: Message, *, protocol_version: t.Optional[int] = None
-    ) -> bytes:
+    def pack(self, message: Message, *, protocol_version: int | None = None) -> bytes:
         if protocol_version is None:
             protocol_version = self._default_protocol_version
         impl = self.IMPLEMENTATIONS[protocol_version]
@@ -27,5 +29,10 @@ class MessagePacker:
 
     def unpack(self, buf: bytes) -> Message:
         protocol_version = self.detect_protocol_version(buf)
-        impl = self.IMPLEMENTATIONS[protocol_version]
+        try:
+            impl = self.IMPLEMENTATIONS[protocol_version]
+        except KeyError:
+            raise UnrecognizedProtocolVersion(
+                f"message had unknown protocol version {protocol_version}"
+            )
         return impl.unpack(buf)
