@@ -36,10 +36,8 @@ class Task(Message):
     def get_v0_body(self) -> bytes:
         if self.raw_buffer is None:
             self.raw_buffer = (
-                f"TID={self.task_id};CID={self.container_id};{self.task_buffer}".encode(
-                    "utf-8"
-                )
-            )
+                f"TID={self.task_id};CID={self.container_id};{self.task_buffer}"
+            ).encode()
         return self.raw_buffer
 
     @classmethod

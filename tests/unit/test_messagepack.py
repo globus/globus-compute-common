@@ -56,7 +56,7 @@ def test_can_manually_v0_get_and_load_task():
     assert task_obj.task_buffer == "some data"
 
     on_wire = task_obj.get_v0_body()
-    assert on_wire == f"TID={task_id};CID={container_id};some data".encode("utf-8")
+    assert on_wire == f"TID={task_id};CID={container_id};some data".encode()
 
     task_obj2 = Task.load_v0_body(on_wire)
     assert task_obj2.task_id == task_id
@@ -64,7 +64,7 @@ def test_can_manually_v0_get_and_load_task():
     assert task_obj2.task_buffer == "some data"
     assert (
         task_obj2.get_v0_body()
-        == f"TID={task_id};CID={container_id};some data".encode("utf-8")
+        == f"TID={task_id};CID={container_id};some data".encode()
     )
 
 
@@ -74,7 +74,7 @@ def test_can_pack_and_unpack_task_v0(v0_packer):
     task_obj = Task(task_id, container_id, "some data")
 
     on_wire = v0_packer.pack(task_obj)
-    payload = f"TID={task_id};CID={container_id};some data".encode("utf-8")
+    payload = f"TID={task_id};CID={container_id};some data".encode()
     header = get_v0_header(MessageType.TASK)
     assert on_wire == header + payload
 
@@ -183,9 +183,9 @@ def test_can_pack_and_unpack_resultsack_v0(v0_packer):
         (MessageType.TASK, b"foo;bar"),
         (MessageType.TASK, b"TID=;CID=;foo"),
         (MessageType.TASK, b";;foo"),
-        (MessageType.TASK, f"TID={ID_ZERO};CID=;foo".encode("utf-8")),
-        (MessageType.TASK, f"TID=;CID={ID_ZERO};foo".encode("utf-8")),
-        (MessageType.TASK, f"TID={ID_ZERO};CID={ID_ZERO}".encode("utf-8")),
+        (MessageType.TASK, f"TID={ID_ZERO};CID=;foo".encode()),
+        (MessageType.TASK, f"TID=;CID={ID_ZERO};foo".encode()),
+        (MessageType.TASK, f"TID={ID_ZERO};CID={ID_ZERO}".encode()),
         (MessageType.HEARTBEAT, b"foo"),
         (MessageType.MANAGER_STATUS_REPORT, b""),
         (MessageType.MANAGER_STATUS_REPORT, b"foo"),
