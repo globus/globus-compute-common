@@ -46,8 +46,9 @@ import dataclasses
 import json
 import logging
 import typing as t
+import uuid
 
-from ..common import Message
+from ..common import Message, is_uuid_field
 from ..exceptions import InvalidMessagePayloadError, UnrecognizedMessageTypeError
 from ..message_types import ALL_MESSAGE_CLASSES
 from ..protocol import MessagePackProtocol
@@ -60,6 +61,21 @@ _VERSION_BYTE = (1).to_bytes(1, byteorder="big", signed=False)
 
 def _typename(x: t.Any) -> str:
     return type(x).__name__
+
+
+def _convert_json_unsafe(data: t.Any) -> t.Any:
+    if isinstance(data, dict):
+        return {k: _convert_json_unsafe(v) for k, v in data.items()}
+    elif isinstance(data, list):
+        return [_convert_json_unsafe(x) for x in data]
+    elif isinstance(data, uuid.UUID):
+        return str(data)
+    else:
+        return data
+
+
+def _json_safe_dict(msg: Message) -> dict[str, t.Any]:
+    return t.cast(t.Dict[str, t.Any], _convert_json_unsafe(dataclasses.asdict(msg)))
 
 
 def _field_required(x: dataclasses.Field[t.Any]) -> bool:
@@ -98,6 +114,30 @@ def _filter_data_to_fields(
             unknown_fields,
         )
     return filtered_fields
+
+
+def _convert_fields(
+    data: dict[str, t.Any], message_class: type[Message]
+) -> dict[str, t.Any]:
+    message_fields = {x.name: x for x in dataclasses.fields(message_class)}
+
+    def convert_field(name: str, value: t.Any) -> t.Any:
+        field_obj = message_fields[name]
+        if is_uuid_field(field_obj):
+            try:
+                return uuid.UUID(value)
+            except ValueError as e:
+                raise InvalidMessagePayloadError(f"invalid UUID: {value}") from e
+        return value
+
+    return {k: convert_field(k, v) for k, v in data.items()}
+
+
+def _load_from_json(data: dict[str, t.Any], message_class: type[Message]) -> Message:
+    _check_required_fields(data, message_class)
+    data = _filter_data_to_fields(data, message_class)
+    data = _convert_fields(data, message_class)
+    return message_class(**data)
 
 
 def _check_envelope(envelope: t.Any) -> None:
@@ -139,7 +179,7 @@ class MessagePackProtocolV1(MessagePackProtocol):
     def pack(self, message: Message) -> bytes:
         body = {
             "message_type": message.message_type,
-            "data": message.get_json_safe_dict(),
+            "data": _json_safe_dict(message),
         }
         # encode() converts to bytes, but no characters will actually be altered because
         # ensure_ascii is being used
@@ -161,8 +201,7 @@ class MessagePackProtocolV1(MessagePackProtocol):
         except KeyError as e:
             raise UnrecognizedMessageTypeError(f"message_type={message_type}") from e
         data = envelope["data"]
-        _check_required_fields(data, message_class)
-        return message_class(**_filter_data_to_fields(data, message_class))
+        return _load_from_json(data, message_class)
 
     @classmethod
     def register_message_type(cls, message_class: type[Message]) -> None:

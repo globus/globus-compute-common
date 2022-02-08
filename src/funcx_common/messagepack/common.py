@@ -2,20 +2,22 @@ from __future__ import annotations
 
 import typing as t
 import uuid
-from dataclasses import asdict, dataclass, fields
+from dataclasses import Field, dataclass, fields
 
-from .validators import get_validator
+from .exceptions import InvalidMessageError
 
 
-def _convert_json_unsafe(data: t.Any) -> t.Any:
-    if isinstance(data, dict):
-        return {k: _convert_json_unsafe(v) for k, v in data.items()}
-    elif isinstance(data, list):
-        return [_convert_json_unsafe(x) for x in data]
-    elif isinstance(data, uuid.UUID):
-        return str(data)
-    else:
-        return data
+def is_uuid_field(field_obj: Field[t.Any]) -> bool:
+    return t.cast(str, field_obj.type) == "uuid.UUID"
+
+
+def _validate_uuid_field(msg: t.Any, field_name: str) -> None:
+    val = getattr(msg, field_name)
+    if not isinstance(val, uuid.UUID):
+        raise InvalidMessageError(
+            f"{msg.message_type} message field '{field_name}' "
+            "does not appear to be a UUID"
+        )
 
 
 @dataclass
@@ -24,9 +26,5 @@ class Message:
 
     def __post_init__(self) -> None:
         for field_obj in fields(self):
-            validator = get_validator(field_obj)
-            if validator:
-                validator(self, field_obj.name)
-
-    def get_json_safe_dict(self) -> dict[str, t.Any]:
-        return t.cast(t.Dict[str, t.Any], _convert_json_unsafe(asdict(self)))
+            if is_uuid_field(field_obj):
+                _validate_uuid_field(self, field_obj.name)

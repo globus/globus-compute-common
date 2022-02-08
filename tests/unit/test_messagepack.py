@@ -5,6 +5,7 @@ import uuid
 import pytest
 
 from funcx_common.messagepack import (
+    InvalidMessageError,
     InvalidMessagePayloadError,
     MessagePacker,
     UnrecognizedMessageTypeError,
@@ -37,7 +38,7 @@ def v1_packer():
         (
             EPStatusReport,
             {
-                "endpoint_id": "058cf505-a09e-4af3-a5f2-eb2e931af141",
+                "endpoint_id": uuid.UUID("058cf505-a09e-4af3-a5f2-eb2e931af141"),
                 "ep_status_report": {},
                 "task_statuses": {},
             },
@@ -46,9 +47,9 @@ def v1_packer():
         (
             EPStatusReport,
             {"endpoint_id": ID_ZERO, "ep_status_report": {}, "task_statuses": {}},
-            {"endpoint_id": str(ID_ZERO), "ep_status_report": {}, "task_statuses": {}},
+            {"endpoint_id": ID_ZERO, "ep_status_report": {}, "task_statuses": {}},
         ),
-        (Heartbeat, {"endpoint_id": str(ID_ZERO)}, None),
+        (Heartbeat, {"endpoint_id": ID_ZERO}, None),
         (HeartbeatReq, {}, None),
         (ManagerStatusReport, {"task_statuses": {}}, None),
         (
@@ -59,15 +60,15 @@ def v1_packer():
         (
             ResultsAck,
             {
-                "task_id": "058cf505-a09e-4af3-a5f2-eb2e931af141",
+                "task_id": uuid.UUID("058cf505-a09e-4af3-a5f2-eb2e931af141"),
             },
             None,
         ),
         (
             Task,
             {
-                "task_id": "058cf505-a09e-4af3-a5f2-eb2e931af141",
-                "container_id": "f72b4570-8273-4913-a6a0-d77af864beb1",
+                "task_id": uuid.UUID("058cf505-a09e-4af3-a5f2-eb2e931af141"),
+                "container_id": uuid.UUID("f72b4570-8273-4913-a6a0-d77af864beb1"),
             },
             None,
         ),
@@ -94,12 +95,32 @@ def test_pack_and_unpack_v1(v1_packer, message_class, init_args, expect_values):
         assert getattr(message_obj2, k) == v
 
 
-def test_invalid_uuid_rejected():
+def test_non_uuid_rejected_on_init():
     # check that args are correct before checking the value error, to confirm it's a
     # matter of the value for 'task_id'
-    Task(task_id=str(ID_ZERO), container_id="f72b4570-8273-4913-a6a0-d77af864beb1")
-    with pytest.raises(ValueError):
-        Task(task_id="foo", container_id="f72b4570-8273-4913-a6a0-d77af864beb1")
+    Task(task_id=ID_ZERO, container_id=ID_ZERO)
+    with pytest.raises(InvalidMessageError):
+        # even though `task_id` encodes a UUID, it is a string and therefore rejected
+        Task(task_id=str(ID_ZERO), container_id=ID_ZERO)
+
+
+def test_invalid_uuid_rejected_on_unpack(v1_packer):
+    buf_valid = crudely_pack_data(
+        {
+            "message_type": "task",
+            "data": {"task_id": str(ID_ZERO), "container_id": str(ID_ZERO)},
+        }
+    )
+    v1_packer.unpack(buf_valid)
+
+    buf_invalid = crudely_pack_data(
+        {
+            "message_type": "task",
+            "data": {"task_id": "foo", "container_id": str(ID_ZERO)},
+        }
+    )
+    with pytest.raises(InvalidMessagePayloadError):
+        v1_packer.unpack(buf_invalid)
 
 
 def test_cannot_unpack_unknown_message_type(v1_packer):
