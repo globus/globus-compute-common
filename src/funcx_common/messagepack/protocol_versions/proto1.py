@@ -2,36 +2,40 @@
 This file defines Protocol Version 1 of the funcx messagepack protocol.
 
 v1 of the protocol does the following:
-- each message is encoded as a JSON object with a two-byte header, with no newlines
+- each message is encoded as a JSON object in UTF-8 with a one-byte header, no newlines
 - the first byte of the header contains the protocol version, always 1
-- the second byte of the header is reserved for future use
 - the JSON body contains exactly two fields: "message_type" (a string) and "data" (an object)
 - "message_type" determines which class is used to load the content in "data"
 
 For example, under protocol v1, a heartbeat request message could be formulated as
 
-    \x01\x00{"message_type":"heartbeat_req","data":{}}
+    \x01{"message_type":"heartbeat_req","data":{}}
 
 where `\x01` is the version byte.
 
 A Task message can be formulated with
 
-    \x01\x00{"message_type":"task","data":{"task_id": "359e2ec3-caef-4258-a149-a67767af0ee8","container_id":"ee138b83-fd62-4b57-b31b-55e460569fd2"}}
+    \x01{"message_type":"task","data":{"task_id": "359e2ec3-caef-4258-a149-a67767af0ee8","container_id":"ee138b83-fd62-4b57-b31b-55e460569fd2"}}
 
 == Multi-Message Payloads
 
 Because newlines are a forbidden character, multiple messages may be newline-delimited, as in
 
-    \x01\x00{"message_type":"foo","data":{}}
-    \x01\x00{"message_type":"bar","data":{}}
+    \x01{"message_type":"foo","data":{}}
+    \x01{"message_type":"bar","data":{}}
 
 == Unknown Field Handling (loading)
 
 The protocol defines the following behavior for missing and unknown fields:
-  - if a payload does not contain a required field, loading will fail with
-    an InvalidMessagePayloadError
+
+  - if a payload does not contain a required field, loading will fail with an
+    InvalidMessagePayloadError
+
   - if a payload defines fields which are not included in the current message
-    definitions, they are silently ignored
+    definitions, they are ignored and a warning is logged
+
+  - if an envelope includes unknown fields (other than "message_type" and "data"), they
+    are ignored and a warning is logged
 
 Therefore, new fields may be added to the message classes, but they must not be
 required until all messages contain those fields.
@@ -40,6 +44,7 @@ from __future__ import annotations
 
 import dataclasses
 import json
+import logging
 import typing as t
 
 from ..common import Message
@@ -47,10 +52,14 @@ from ..exceptions import InvalidMessagePayloadError, UnrecognizedMessageTypeErro
 from ..message_types import ALL_MESSAGE_CLASSES
 from ..protocol import MessagePackProtocol
 
+log = logging.getLogger(__name__)
+
 # protocol version and reserved byte as a byte array
 _VERSION_BYTE = (1).to_bytes(1, byteorder="big", signed=False)
-_RESERVED_BYTE = (0).to_bytes(1, byteorder="big", signed=False)
-_STANDARD_HEADER = _VERSION_BYTE + _RESERVED_BYTE
+
+
+def _typename(x: t.Any) -> str:
+    return type(x).__name__
 
 
 def _field_required(x: dataclasses.Field[t.Any]) -> bool:
@@ -68,12 +77,11 @@ def _check_required_fields(
     required_message_fields = {
         x.name for x in dataclasses.fields(message_class) if _field_required(x)
     }
-    data_keys = set(data.keys())
-    if not required_message_fields <= data_keys:
+    missing_fields = {x for x in required_message_fields if x not in data}
+    if missing_fields:
         raise InvalidMessagePayloadError(
             f"message body of type {message_class.message_type} was missing required "
-            "fields: "
-            f"data_keys={data_keys}, required_message_fields={required_message_fields}"
+            f"fields: {missing_fields}"
         )
 
 
@@ -81,7 +89,48 @@ def _filter_data_to_fields(
     data: dict[str, t.Any], message_class: type[Message]
 ) -> dict[str, t.Any]:
     message_fields = {x.name for x in dataclasses.fields(message_class)}
-    return {k: v for k, v in data.items() if k in message_fields}
+    filtered_fields = {k: v for k, v in data.items() if k in message_fields}
+    unknown_fields = {x for x in data if x not in message_fields}
+    if unknown_fields:
+        log.warning(
+            "encountered unknown data fields while reading a %s message: %s",
+            message_class.message_type,
+            unknown_fields,
+        )
+    return filtered_fields
+
+
+def _check_envelope(envelope: t.Any) -> None:
+    if not isinstance(envelope, dict):
+        raise InvalidMessagePayloadError("cannot unpack message from non-dict envelope")
+
+    required_fields = {"message_type", "data"}
+    missing_fields = {x for x in required_fields if x not in envelope}
+    unknown_fields = {x for x in envelope if x not in required_fields}
+
+    if missing_fields:
+        raise InvalidMessagePayloadError(
+            f"cannot unpack message missing required envelope fields: {missing_fields}"
+        )
+
+    message_type = envelope["message_type"]
+
+    type_errors = []
+    if not isinstance(message_type, str):
+        type_errors.append("message_type expected str, got " + _typename(message_type))
+    if not isinstance(envelope["data"], dict):
+        type_errors.append("data expected dict, got " + _typename(envelope["data"]))
+    if type_errors:
+        raise InvalidMessagePayloadError(
+            f"incorrect types for envelope fields: {type_errors}"
+        )
+
+    if unknown_fields:
+        log.warning(
+            "encountered unknown envelope fields while reading a %s message: %s",
+            message_type,
+            unknown_fields,
+        )
 
 
 class MessagePackProtocolV1(MessagePackProtocol):
@@ -94,21 +143,17 @@ class MessagePackProtocolV1(MessagePackProtocol):
         }
         # encode() converts to bytes, but no characters will actually be altered because
         # ensure_ascii is being used
+        # encode() defaults to UTF-8, which is what the protocol specifies
         return (
-            _STANDARD_HEADER
+            _VERSION_BYTE
             + json.dumps(body, separators=(",", ":"), ensure_ascii=True).encode()
         )
 
     def unpack(self, buf: bytes) -> Message:
-        # strip the two byte header
-        body = buf[2:]
+        # strip the version byte header
+        body = buf[1:]
         envelope = json.loads(body)
-        if "message_type" not in envelope:
-            raise InvalidMessagePayloadError(
-                "cannot unpack message with no message_type"
-            )
-        if "data" not in envelope:
-            raise InvalidMessagePayloadError("cannot unpack message with no data")
+        _check_envelope(envelope)
 
         message_type = envelope["message_type"]
         try:
