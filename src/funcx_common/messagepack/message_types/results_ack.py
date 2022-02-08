@@ -9,4 +9,4 @@ from ..common import Message
 @dataclass
 class ResultsAck(Message):
     message_type = "results_ack"
-    task_id: str | uuid.UUID
+    task_id: uuid.UUID

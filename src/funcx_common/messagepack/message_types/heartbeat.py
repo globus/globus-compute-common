@@ -14,4 +14,4 @@ class Heartbeat(Message):
     """
 
     message_type = "heartbeat"
-    endpoint_id: str | uuid.UUID
+    endpoint_id: uuid.UUID

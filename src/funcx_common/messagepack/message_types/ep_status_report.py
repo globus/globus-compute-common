@@ -16,6 +16,6 @@ class EPStatusReport(Message):
     """
 
     message_type = "ep_status_report"
-    endpoint_id: str | uuid.UUID
-    ep_status_report: t.Dict[str, t.Any]
-    task_statuses: t.Dict[str, t.Any]
+    endpoint_id: uuid.UUID
+    ep_status_report: dict[str, t.Any]
+    task_statuses: dict[str, t.Any]
