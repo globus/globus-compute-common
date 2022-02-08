@@ -18,8 +18,8 @@ protocol version.
 ## Version Detection
 
 The first byte of a message is the version byte. It contains a single
-big-endian unsigned integer, and can be read without unpacking the message to
-get the version of the protocol to use.
+unsigned integer, and can be read without unpacking the message to get the
+version of the protocol to use.
 
 ## Versions
 
@@ -29,13 +29,26 @@ A v0 of the protocol was implemented in the past, but it was removed.
 
 ### Protocol Version 1
 
-In v1 of the protocol, messages are JSON payloads with a two byte header.
-The first byte is the version byte, and the second byte is a reserved byte
-for future use. It may be used for flags or other information.
+In v1 of the protocol, messages are JSON payloads with a one byte header.
+The leading byte is the version byte, and should always have a value of `1`.
+This ensures that readers can check the protocol version without attempting to
+unpack the message.
 
-The rest of the payload contains a JSON document with no newlines.
+The rest of the payload contains a UTF-8 encoded JSON document with no
+newlines.
 
-Multiple messages can therefore be streamed using newlines as the delimiter.
+Multiple messages can therefore be streamed using unix-style newlines (`\n`)
+as the delimiter.
+
+#### Missing and Unknown Field Behavior
+
+In v1, message unpacking has the following behavior for unknown or missing
+fields:
+
+- If a payload does not contain a required field, an `InvalidMessagePayloadError`
+  will be raised
+
+- If a payload defines fields which are not recognized, they will be ignored
 
 ## Differences between messagepack and `funcx-endpoint` "messages"
 

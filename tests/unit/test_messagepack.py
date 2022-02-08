@@ -1,4 +1,5 @@
 import json
+import logging
 import uuid
 
 import pytest
@@ -19,6 +20,10 @@ from funcx_common.messagepack.message_types import (
 )
 
 ID_ZERO = uuid.UUID(int=0)
+
+
+def crudely_pack_data(data):
+    return b"\x01" + json.dumps(data, separators=(",", ":")).encode()
 
 
 @pytest.fixture
@@ -77,10 +82,8 @@ def test_pack_and_unpack_v1(v1_packer, message_class, init_args, expect_values):
     on_wire = v1_packer.pack(message_obj)
     # first byte (version byte) "1"
     assert on_wire[0:1] == b"\x01"
-    # second byte (reserved byte) "0"
-    assert on_wire[1:2] == b"\x00"
     # body is JSON, and valid
-    payload = json.loads(on_wire[2:])
+    payload = json.loads(on_wire[1:])
     assert "message_type" in payload
     assert "data" in payload
 
@@ -100,31 +103,47 @@ def test_invalid_uuid_rejected():
 
 
 def test_cannot_unpack_unknown_message_type(v1_packer):
-    buf = b'\x01\x00{"message_type":"foo","data":{}}'
+    buf = crudely_pack_data({"message_type": "foo", "data": {}})
     with pytest.raises(UnrecognizedMessageTypeError):
         v1_packer.unpack(buf)
 
 
 def test_cannot_unpack_message_missing_data(v1_packer):
-    buf = b'\x01\x00{"message_type":"task"}'
+    buf = crudely_pack_data({"message_type": "task"})
     with pytest.raises(InvalidMessagePayloadError):
         v1_packer.unpack(buf)
 
 
 def test_cannot_unpack_message_missing_type(v1_packer):
-    buf = b'\x01\x00{"data":{}}'
+    buf = crudely_pack_data({"data": {}})
     with pytest.raises(InvalidMessagePayloadError):
         v1_packer.unpack(buf)
 
 
 def test_cannot_unpack_message_empty_data(v1_packer):
-    buf = b'\x01\x00{"message_type":"task","data":{}}'
+    buf = crudely_pack_data({"message_type": "task", "data": {}})
     with pytest.raises(InvalidMessagePayloadError):
         v1_packer.unpack(buf)
 
 
+@pytest.mark.parametrize(
+    "payload, expect_err",
+    [
+        ([{"message_type": "task"}], "non-dict envelope"),
+        ({"message_type": ["task"], "data": {}}, "message_type expected str, got list"),
+        ({"message_type": "task", "data": None}, "data expected dict, got NoneType"),
+    ],
+)
+def test_cannot_unpack_message_wrong_type(v1_packer, payload, expect_err):
+    buf = crudely_pack_data(payload)
+    with pytest.raises(InvalidMessagePayloadError) as excinfo:
+        v1_packer.unpack(buf)
+    assert expect_err in str(excinfo.value)
+
+
 def test_cannot_unpack_unrecognized_protocol_version(v1_packer):
-    buf = b'\x02\x00{"message_type":"foo","data":{}}'
+    buf = crudely_pack_data({"message_type": "foo", "data": {}})
+    buf = b"\x02" + buf[1:]
     with pytest.raises(UnrecognizedProtocolVersion):
         v1_packer.unpack(buf)
 
@@ -132,3 +151,42 @@ def test_cannot_unpack_unrecognized_protocol_version(v1_packer):
 def test_failure_on_empty_buffer(v1_packer):
     with pytest.raises(ValueError):
         v1_packer.unpack(b"")
+
+
+def test_unknown_data_fields_warn(v1_packer, caplog):
+    buf = crudely_pack_data(
+        {
+            "message_type": "heartbeat",
+            "data": {"endpoint_id": str(ID_ZERO), "foo_field": "bar"},
+        }
+    )
+    with caplog.at_level(logging.WARNING, logger="funcx_common"):
+        msg = v1_packer.unpack(buf)
+        # successfully unpacked
+        assert isinstance(msg, Heartbeat)
+    # but logged a warning (do two assertions so as not to insist on a precise format
+    # for the logged fields
+    assert (
+        "encountered unknown data fields while reading a heartbeat message:"
+    ) in caplog.text
+    assert "foo_field" in caplog.text
+
+
+def test_unknown_envelope_fields_warn(v1_packer, caplog):
+    buf = crudely_pack_data(
+        {
+            "message_type": "heartbeat",
+            "data": {"endpoint_id": str(ID_ZERO)},
+            "unexpected_fieldname": "foo",
+        }
+    )
+    with caplog.at_level(logging.WARNING, logger="funcx_common"):
+        msg = v1_packer.unpack(buf)
+        # successfully unpacked
+        assert isinstance(msg, Heartbeat)
+    # but logged a warning (do two assertions so as not to insist on a precise format
+    # for the logged fields
+    assert (
+        "encountered unknown envelope fields while reading a heartbeat message:"
+    ) in caplog.text
+    assert "unexpected_fieldname" in caplog.text
