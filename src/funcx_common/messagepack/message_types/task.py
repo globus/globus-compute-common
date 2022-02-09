@@ -7,3 +7,4 @@ from .base import Message, meta
 class Task(Message):
     task_id: uuid.UUID
     container_id: uuid.UUID
+    task_buffer: str
