@@ -10,7 +10,7 @@ And the two must be inverses on any valid inputs.
 
 import abc
 
-from .common import Message
+from .message_types import Message
 
 
 class MessagePackProtocol(abc.ABC):

@@ -1,10 +1,6 @@
-from __future__ import annotations
-
-from dataclasses import dataclass
-
-from ..common import Message
+from .base import Message, meta
 
 
-@dataclass
+@meta(message_type="heartbeat_req")
 class HeartbeatReq(Message):
-    message_type = "heartbeat_req"
+    ...

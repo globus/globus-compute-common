@@ -9,6 +9,7 @@
 
 ### Changed
 
-- Messages in the `funcx.messagepack` subpackage are now dataclasses, and their
-  members have changed. The `message_type` field is now a classvar of type
-  `str`, not an enum
+- `pydantic>=1,<2` is now required by `funcx-common`
+
+- Messages in the `funcx.messagepack` subpackage are now pydantic models, and their
+  members have changed. The `message_type` is now a  `str`, not an enum
