@@ -1,12 +1,8 @@
-from __future__ import annotations
-
 import uuid
-from dataclasses import dataclass
 
-from ..common import Message
+from .base import Message, meta
 
 
-@dataclass
+@meta(message_type="results_ack")
 class ResultsAck(Message):
-    message_type = "results_ack"
     task_id: uuid.UUID

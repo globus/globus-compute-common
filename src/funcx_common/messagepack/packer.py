@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from .common import Message
 from .exceptions import UnrecognizedProtocolVersion
+from .message_types import Message
 from .protocol import MessagePackProtocol
 from .protocol_versions.proto1 import MessagePackProtocolV1
 

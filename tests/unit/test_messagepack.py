@@ -2,15 +2,10 @@ import json
 import logging
 import uuid
 
+import pydantic
 import pytest
 
-from funcx_common.messagepack import (
-    InvalidMessageError,
-    InvalidMessagePayloadError,
-    MessagePacker,
-    UnrecognizedMessageTypeError,
-    UnrecognizedProtocolVersion,
-)
+from funcx_common.messagepack import MessagePacker, UnrecognizedProtocolVersion
 from funcx_common.messagepack.message_types import (
     EPStatusReport,
     Heartbeat,
@@ -19,6 +14,7 @@ from funcx_common.messagepack.message_types import (
     ResultsAck,
     Task,
 )
+from funcx_common.messagepack.message_types.base import Message, meta
 
 ID_ZERO = uuid.UUID(int=0)
 
@@ -95,13 +91,10 @@ def test_pack_and_unpack_v1(v1_packer, message_class, init_args, expect_values):
         assert getattr(message_obj2, k) == v
 
 
-def test_non_uuid_rejected_on_init():
-    # check that args are correct before checking the value error, to confirm it's a
-    # matter of the value for 'task_id'
+def test_invalid_uuid_rejected_on_init():
     Task(task_id=ID_ZERO, container_id=ID_ZERO)
-    with pytest.raises(InvalidMessageError):
-        # even though `task_id` encodes a UUID, it is a string and therefore rejected
-        Task(task_id=str(ID_ZERO), container_id=ID_ZERO)
+    with pytest.raises(pydantic.ValidationError):
+        Task(task_id="foo", container_id=ID_ZERO)
 
 
 def test_invalid_uuid_rejected_on_unpack(v1_packer):
@@ -119,45 +112,45 @@ def test_invalid_uuid_rejected_on_unpack(v1_packer):
             "data": {"task_id": "foo", "container_id": str(ID_ZERO)},
         }
     )
-    with pytest.raises(InvalidMessagePayloadError):
+    with pytest.raises(pydantic.ValidationError):
         v1_packer.unpack(buf_invalid)
 
 
 def test_cannot_unpack_unknown_message_type(v1_packer):
     buf = crudely_pack_data({"message_type": "foo", "data": {}})
-    with pytest.raises(UnrecognizedMessageTypeError):
+    with pytest.raises(pydantic.ValidationError):
         v1_packer.unpack(buf)
 
 
 def test_cannot_unpack_message_missing_data(v1_packer):
     buf = crudely_pack_data({"message_type": "task"})
-    with pytest.raises(InvalidMessagePayloadError):
+    with pytest.raises(pydantic.ValidationError):
         v1_packer.unpack(buf)
 
 
 def test_cannot_unpack_message_missing_type(v1_packer):
     buf = crudely_pack_data({"data": {}})
-    with pytest.raises(InvalidMessagePayloadError):
+    with pytest.raises(pydantic.ValidationError):
         v1_packer.unpack(buf)
 
 
 def test_cannot_unpack_message_empty_data(v1_packer):
     buf = crudely_pack_data({"message_type": "task", "data": {}})
-    with pytest.raises(InvalidMessagePayloadError):
+    with pytest.raises(pydantic.ValidationError):
         v1_packer.unpack(buf)
 
 
 @pytest.mark.parametrize(
     "payload, expect_err",
     [
-        ([{"message_type": "task"}], "non-dict envelope"),
-        ({"message_type": ["task"], "data": {}}, "message_type expected str, got list"),
-        ({"message_type": "task", "data": None}, "data expected dict, got NoneType"),
+        ([{"message_type": "task"}], "expected dict not list"),
+        ({"message_type": ["task"], "data": {}}, "str type expected"),
+        ({"message_type": "task", "data": None}, "none is not an allowed value"),
     ],
 )
 def test_cannot_unpack_message_wrong_type(v1_packer, payload, expect_err):
     buf = crudely_pack_data(payload)
-    with pytest.raises(InvalidMessagePayloadError) as excinfo:
+    with pytest.raises(pydantic.ValidationError) as excinfo:
         v1_packer.unpack(buf)
     assert expect_err in str(excinfo.value)
 
@@ -211,3 +204,43 @@ def test_unknown_envelope_fields_warn(v1_packer, caplog):
         "encountered unknown envelope fields while reading a heartbeat message:"
     ) in caplog.text
     assert "unexpected_fieldname" in caplog.text
+
+
+def test_meta_decorator():
+    # case 1: no defined internal Meta (inherited from Message)
+    @meta(foo=1, bar=2)
+    class MyMessage(Message):
+        ...
+
+    assert MyMessage.Meta.foo == 1
+    assert MyMessage.Meta.bar == 2
+    # inherited Meta was not modified
+    assert not hasattr(Message.Meta, "foo")
+    assert not hasattr(Message.Meta, "bar")
+
+    # case 2: defined internal Meta, mixed with decorator values
+    @meta(foo=1)
+    class MyMessage2(Message):
+        class Meta:
+            bar = 3
+
+    assert MyMessage2.Meta.foo == 1
+    assert MyMessage2.Meta.bar == 3
+
+    # case 3: inherited internal Meta from non-Message class
+    @meta(message_type="foo")
+    class MyMessage3(MyMessage2):
+        ...
+
+    assert MyMessage3.Meta.foo == 1
+    assert MyMessage3.Meta.bar == 3
+    assert MyMessage3.Meta.message_type == "foo"
+
+    # case 4: class which does not define a Meta dict at all
+    # (does not inherit from Message)
+    @meta(foo=1)
+    class MyMessage4:
+        pass
+
+    assert hasattr(MyMessage4, "Meta")
+    assert MyMessage4.Meta.foo == 1

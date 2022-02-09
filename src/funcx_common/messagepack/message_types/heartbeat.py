@@ -1,17 +1,13 @@
-from __future__ import annotations
-
 import uuid
-from dataclasses import dataclass
 
-from ..common import Message
+from .base import Message, meta
 
 
-@dataclass
+@meta(message_type="heartbeat")
 class Heartbeat(Message):
     """
     Generic Heartbeat message, sent in both directions between Forwarder and
     Endpoint.
     """
 
-    message_type = "heartbeat"
     endpoint_id: uuid.UUID
