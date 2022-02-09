@@ -43,7 +43,7 @@ def v1_packer():
         (
             EPStatusReport,
             {"endpoint_id": ID_ZERO, "ep_status_report": {}, "task_statuses": {}},
-            {"endpoint_id": ID_ZERO, "ep_status_report": {}, "task_statuses": {}},
+            None,
         ),
         (Heartbeat, {"endpoint_id": ID_ZERO}, None),
         (HeartbeatReq, {}, None),
@@ -65,6 +65,7 @@ def v1_packer():
             {
                 "task_id": uuid.UUID("058cf505-a09e-4af3-a5f2-eb2e931af141"),
                 "container_id": uuid.UUID("f72b4570-8273-4913-a6a0-d77af864beb1"),
+                "task_buffer": "foo data",
             },
             None,
         ),
@@ -92,16 +93,20 @@ def test_pack_and_unpack_v1(v1_packer, message_class, init_args, expect_values):
 
 
 def test_invalid_uuid_rejected_on_init():
-    Task(task_id=ID_ZERO, container_id=ID_ZERO)
+    Task(task_id=ID_ZERO, container_id=ID_ZERO, task_buffer="foo")
     with pytest.raises(pydantic.ValidationError):
-        Task(task_id="foo", container_id=ID_ZERO)
+        Task(task_id="foo", container_id=ID_ZERO, task_buffer="foo")
 
 
 def test_invalid_uuid_rejected_on_unpack(v1_packer):
     buf_valid = crudely_pack_data(
         {
             "message_type": "task",
-            "data": {"task_id": str(ID_ZERO), "container_id": str(ID_ZERO)},
+            "data": {
+                "task_id": str(ID_ZERO),
+                "container_id": str(ID_ZERO),
+                "task_buffer": "foo",
+            },
         }
     )
     v1_packer.unpack(buf_valid)
@@ -109,7 +114,11 @@ def test_invalid_uuid_rejected_on_unpack(v1_packer):
     buf_invalid = crudely_pack_data(
         {
             "message_type": "task",
-            "data": {"task_id": "foo", "container_id": str(ID_ZERO)},
+            "data": {
+                "task_id": "foo",
+                "container_id": str(ID_ZERO),
+                "task_buffer": "foo",
+            },
         }
     )
     with pytest.raises(pydantic.ValidationError):
