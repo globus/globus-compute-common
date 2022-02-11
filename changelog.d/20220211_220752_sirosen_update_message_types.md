@@ -12,4 +12,4 @@
       `funcx_common.messagepack.message_types.ResultErrorCode` and
       `funcx_common.messagepack.message_types.ResultErrorDetails`
 
-  - `TaskCancel` is defined as a stub with no fields for now
+  - `TaskCancel` is defined only to have the `task_id` field

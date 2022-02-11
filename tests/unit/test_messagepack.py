@@ -13,6 +13,7 @@ from funcx_common.messagepack.message_types import (
     ResultErrorCode,
     ResultErrorDetails,
     Task,
+    TaskCancel,
 )
 from funcx_common.messagepack.message_types.base import Message, meta
 
@@ -60,6 +61,7 @@ def v1_packer():
             },
             None,
         ),
+        (TaskCancel, {"task_id": ID_ZERO}, None),
         (
             Result,
             {
@@ -68,6 +70,15 @@ def v1_packer():
                 "error_details": None,
             },
             None,
+        ),
+        (  # "error_details" gets populated even if it was not originally set
+            Result,
+            {"task_id": ID_ZERO, "data": "foo-bar-baz"},
+            {
+                "task_id": ID_ZERO,
+                "data": "foo-bar-baz",
+                "error_details": None,
+            },
         ),
         (
             Result,
@@ -153,6 +164,8 @@ def _required_arg_test_ids(param):
         (Task, {"container_id": ID_ZERO, "task_buffer": "foo data"}),
         (Task, {"task_id": ID_ZERO, "task_buffer": "foo data"}),
         (Task, {"task_id": ID_ZERO, "container_id": ID_ZERO}),
+        # TaskCancel requires: task_id
+        (TaskCancel, {}),
         # Result requires: task_id, data
         (Result, {"data": "foo-bar-baz", "error_details": None}),
         (Result, {"task_id": ID_ZERO, "error_details": None}),
