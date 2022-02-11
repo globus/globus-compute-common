@@ -10,7 +10,6 @@ from funcx_common.messagepack.message_types import (
     EPStatusReport,
     ManagerStatusReport,
     Result,
-    ResultErrorCode,
     ResultErrorDetails,
     Task,
     TaskCancel,
@@ -96,7 +95,7 @@ def v1_packer():
                 "data": "foo-bar-baz",
                 "error_details": ResultErrorDetails(
                     is_system_error=True,
-                    code=ResultErrorCode.ManagerLost,
+                    code="ManagerLost",
                     user_message="something bad happened",
                 ),
             },
@@ -108,7 +107,7 @@ def v1_packer():
                 "data": "foo-bar-baz",
                 "error_details": ResultErrorDetails(
                     is_system_error=True,
-                    code=ResultErrorCode.ManagerLost,
+                    code="ManagerLost",
                     user_message="something bad happened",
                 ),
             },
@@ -212,23 +211,6 @@ def test_message_missing_required_fields(message_class, init_args):
         message_class(**init_args)
 
 
-@pytest.mark.parametrize("code_val", list(ResultErrorCode))
-def test_result_error_details_accepts_valid_codes(code_val):
-    val = ResultErrorDetails(is_system_error=True, user_message="foo", code=code_val)
-    # confirm that strings get converted under parse_obj
-    val2 = ResultErrorDetails.parse_obj(
-        dict(is_system_error=True, user_message="foo", code=code_val.value)
-    )
-    assert val == val2
-
-
-def test_result_error_details_rejects_unknown_codes():
-    with pytest.raises(pydantic.ValidationError):
-        ResultErrorDetails(
-            is_system_error=True, user_message="foo", code="FOO BAR UNKNOWN"
-        )
-
-
 @pytest.mark.parametrize(
     "details, expect",
     [
@@ -237,7 +219,7 @@ def test_result_error_details_rejects_unknown_codes():
             ResultErrorDetails(
                 is_system_error=False,
                 user_message="foo",
-                code=ResultErrorCode.ContainerError,
+                code="ContainerError",
             ),
             True,
         ),

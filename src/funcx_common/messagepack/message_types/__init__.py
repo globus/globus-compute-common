@@ -3,7 +3,7 @@ import typing as t
 from .base import Message
 from .ep_status_report import EPStatusReport
 from .manager_status_report import ManagerStatusReport
-from .result import Result, ResultErrorCode, ResultErrorDetails
+from .result import Result, ResultErrorDetails
 from .task import Task
 from .task_cancel import TaskCancel
 
@@ -22,7 +22,6 @@ __all__ = (
     "Task",
     "TaskCancel",
     "Result",
-    "ResultErrorCode",
     "ResultErrorDetails",
     "ALL_MESSAGE_CLASSES",
 )
