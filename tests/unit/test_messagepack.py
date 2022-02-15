@@ -85,7 +85,6 @@ def v1_packer():
                 "task_id": str(ID_ZERO),
                 "data": "foo-bar-baz",
                 "error_details": {
-                    "is_system_error": True,
                     "code": "ManagerLost",
                     "user_message": "something bad happened",
                 },
@@ -94,7 +93,6 @@ def v1_packer():
                 "task_id": ID_ZERO,
                 "data": "foo-bar-baz",
                 "error_details": ResultErrorDetails(
-                    is_system_error=True,
                     code="ManagerLost",
                     user_message="something bad happened",
                 ),
@@ -106,7 +104,6 @@ def v1_packer():
                 "task_id": ID_ZERO,
                 "data": "foo-bar-baz",
                 "error_details": ResultErrorDetails(
-                    is_system_error=True,
                     code="ManagerLost",
                     user_message="something bad happened",
                 ),
@@ -169,14 +166,13 @@ def _required_arg_test_ids(param):
         (Result, {"data": "foo-bar-baz", "error_details": None}),
         (Result, {"task_id": ID_ZERO, "error_details": None}),
         # if Result.error_details is not null, it requires:
-        #   is_system_error, code, user_message
+        #   code, user_message
         (
             Result,
             {
                 "task_id": ID_ZERO,
                 "data": "foo-bar-baz",
                 "error_details": {
-                    "code": "ManagerLost",
                     "user_message": "something bad happened",
                 },
             },
@@ -187,18 +183,6 @@ def _required_arg_test_ids(param):
                 "task_id": ID_ZERO,
                 "data": "foo-bar-baz",
                 "error_details": {
-                    "is_system_error": True,
-                    "user_message": "something bad happened",
-                },
-            },
-        ),
-        (
-            Result,
-            {
-                "task_id": ID_ZERO,
-                "data": "foo-bar-baz",
-                "error_details": {
-                    "is_system_error": True,
                     "code": "ManagerLost",
                 },
             },
@@ -217,7 +201,6 @@ def test_message_missing_required_fields(message_class, init_args):
         (None, False),
         (
             ResultErrorDetails(
-                is_system_error=False,
                 user_message="foo",
                 code="ContainerError",
             ),

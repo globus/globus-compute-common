@@ -9,8 +9,6 @@ from .base import Message, meta
 
 
 class ResultErrorDetails(pydantic.BaseModel):
-    # is the error related to FuncX internals or not?
-    is_system_error: bool
     # a string for the error code
     code: str
     # the user is always supposed to see user_message somewhere
