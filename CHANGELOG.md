@@ -2,6 +2,40 @@
 
 <!-- scriv-insert-here -->
 
+## 0.0.12 (2022-02-15)
+
+### Added
+
+- `InvalidAuthToken` and `InsufficientAuthScope` error classes were added for auth errors that occur in the web service
+
+- Implementation of v1 of the `funcx.messagepack` protocol.
+  See [the readme](src/funcx_common/messagepack/) for more info
+
+- The following message types have been added to `messagepack`: `Result`,
+  `TaskCancel`
+
+  - `Result` defines an additional model for de/serializing errors:
+    `funcx_common.messagepack.message_types.ResultErrorDetails`. The
+    `ResultErrorDetails` object is used to wrap a string code, a user-facing
+    message, and a bool to indicate that the error was retryable (FuncX-system
+    related errors, as opposed to a code execution error)
+
+  - `TaskCancel` is defined only to have the `task_id` field
+
+### Removed
+
+- Remove the v0 implementation of `funcx.messagepack`
+
+- The following message types have been removed from `messagepack`:
+    `Heartbeat`, `HeartbeatReq`, `ResultsAck`
+
+### Changed
+
+- `pydantic>=1,<2` is now required by `funcx-common`
+
+- Messages in the `funcx.messagepack` subpackage are now pydantic models, and their
+  members have changed. The `message_type` is now a  `str`, not an enum
+
 ## 0.0.11 (2022-01-04)
 
 ### Added
@@ -9,16 +43,12 @@
 - A new class, `funcx_common.redis_task.RedisTask` has been added, which
   implements the `TaskProtocol` backed with `RedisField` attributes. This
   follows the pattern of existing implementations.
+
 - `RedisTask.load` is added as a classmethod for loading tasks from Redis with
   the requirement that the task must exist in Redis
+
 - A new enum has been added, `funcx_common.tasks.InternalTaskState`, for
   task `internal_status` values
-
-## 0.0.11-a0 (2021-12-15)
-
-This is an alpha release intended for testing only.
-
-### Added
 
 - `funcx_common.task_storage.TaskStorage` and its child classes (`ImplicitRedisStorage` and
     `RedisS3Storage`) now support `store_payload` and `get_payload` methods.
@@ -103,6 +133,7 @@ This is an alpha release intended for testing only.
 
 - `funcx_common.redis.HasRedisConnection` no longer provides the
   `log_connection_errors` decorator
+
 - `funcx_common.redis.FuncxRedisPubSub` and `funcx_common.redis.FuncxEndpointTaskQueue`
   no longer automatically log redis connection errors to the `funcx_common` logger. Users
   of these classes should either handle these errors themselves or make use of the new
@@ -116,9 +147,11 @@ This is an alpha release intended for testing only.
   must have the signature `(str, int) -> redis.Redis`, and the default
   is a function visible under the name
   `funcx_common.redis.default_redis_connection_factory`.
+
 - A new context-manager is available as a method of the `HasRedisConnection` class,
   `HasRedisConnection.connection_error_logging`. This can be used to capture
   and log (at exception-level) redis connection errors to the `funcx_common` logger
+
 - The default connection construction for `HasRedisConnection` now sets
   `health_check_interval=30`. To override this setting, use
   `redis_connection_factory`
@@ -126,6 +159,7 @@ This is an alpha release intended for testing only.
 ### Changed
 
 - Begin using `scriv` to manage the changelog
+-
 - The `FuncxRedisConnection` class has been renamed to
   `HasRedisConnection`. The name change better indicates that this class
   is not a connection itself -- it's just an inheritable way of constructing
@@ -145,18 +179,22 @@ This is an alpha release intended for testing only.
 - First version of generic task utilities. Constants starting with task states
   and a `TaskProtocol` class which defines (some) required properties of
   `Task` objects. Import from `funcx_common.tasks`
+
 - Add first version of `FuncxRedisConnection` and `FuncxEndpointTaskQueue`
   utilities for wrapping redis-py. Import from `funcx_common.redis`, as in
   `from funcx_common.redis import FuncxEndpointTaskQueue`
+
 - A new extra, `redis` defines a requirement for the redis-py lib. Install with
   `funcx-common[redis]` to pull in the redis requirement. Installation
   without `reids` will result in `FuncxRedisConnection` and
   `FuncxEndpointTaskQueue` failing to initialize
+
 - `funcx_common.redis` now provides `RedisField`, a descriptor which is backed by
   `hset` and `hget` against the owning object's `redis_client` attribute for
   presistence. Initialization of `RedisField` requires the `HasRedisFieldsMeta`
   metaclass. `HasRedisFields` may be used to apply this metaclass via
   inheritance.
+
 - De/serialization of `RedisField` data can be defined with "serde" objects.
   `funcx_common.redis` provides: `DEFAULT_SERDE` (strings), `INT_SERDE`,
   `JSON_SERDE`, and `FuncxRedisEnumSerde` (takes an enum class as an input)
@@ -165,7 +203,9 @@ This is an alpha release intended for testing only.
 
 - Bugfix: `FuncxResponseError.unpack()` correctly handles values not in the
   known response codes enum
+
 - Add `py.typed` to package data, to publish type annotations
+
 - Bugfix: annotate `FuncxResponseError.http_status_code` as a class var
 
 ## 0.0.2 (2021-08-17)
