@@ -8,11 +8,11 @@ import pytest
 from funcx_common.messagepack import MessagePacker, UnrecognizedProtocolVersion
 from funcx_common.messagepack.message_types import (
     EPStatusReport,
-    Heartbeat,
-    HeartbeatReq,
     ManagerStatusReport,
-    ResultsAck,
+    Result,
+    ResultErrorDetails,
     Task,
+    TaskCancel,
 )
 from funcx_common.messagepack.message_types.base import Message, meta
 
@@ -45,20 +45,11 @@ def v1_packer():
             {"endpoint_id": ID_ZERO, "ep_status_report": {}, "task_statuses": {}},
             None,
         ),
-        (Heartbeat, {"endpoint_id": ID_ZERO}, None),
-        (HeartbeatReq, {}, None),
         (ManagerStatusReport, {"task_statuses": {}}, None),
         (
             ManagerStatusReport,
             {"task_statuses": {"foo": [ID_ZERO, "abc"]}},
             {"task_statuses": {"foo": [str(ID_ZERO), "abc"]}},
-        ),
-        (
-            ResultsAck,
-            {
-                "task_id": uuid.UUID("058cf505-a09e-4af3-a5f2-eb2e931af141"),
-            },
-            None,
         ),
         (
             Task,
@@ -68,6 +59,56 @@ def v1_packer():
                 "task_buffer": "foo data",
             },
             None,
+        ),
+        (TaskCancel, {"task_id": ID_ZERO}, None),
+        (
+            Result,
+            {
+                "task_id": ID_ZERO,
+                "data": "foo-bar-baz",
+                "error_details": None,
+            },
+            None,
+        ),
+        (  # "error_details" gets populated even if it was not originally set
+            Result,
+            {"task_id": ID_ZERO, "data": "foo-bar-baz"},
+            {
+                "task_id": ID_ZERO,
+                "data": "foo-bar-baz",
+                "error_details": None,
+            },
+        ),
+        (
+            Result,
+            {  # as JSON data
+                "task_id": str(ID_ZERO),
+                "data": "foo-bar-baz",
+                "error_details": {
+                    "code": "ManagerLost",
+                    "user_message": "something bad happened",
+                },
+            },
+            {  # result has native types
+                "task_id": ID_ZERO,
+                "data": "foo-bar-baz",
+                "error_details": ResultErrorDetails(
+                    code="ManagerLost",
+                    user_message="something bad happened",
+                ),
+            },
+        ),
+        (
+            Result,
+            {  # as native types
+                "task_id": ID_ZERO,
+                "data": "foo-bar-baz",
+                "error_details": ResultErrorDetails(
+                    code="ManagerLost",
+                    user_message="something bad happened",
+                ),
+            },
+            None,  # result is identical
         ),
     ],
 )
@@ -89,7 +130,87 @@ def test_pack_and_unpack_v1(v1_packer, message_class, init_args, expect_values):
     assert isinstance(message_obj2, message_class)
     for k, v in expect_values.items():
         assert hasattr(message_obj2, k)
-        assert getattr(message_obj2, k) == v
+        v2 = getattr(message_obj2, k)
+        assert v2 == v
+        # explicitly check that the types of the two values match
+        # otherwise, you get a false-negative when comparing `{"foo": "bar"}` to a
+        # pydantic model object which `dict`s into `{"foo": "bar"}`
+        assert type(v2) == type(v)
+
+
+def _required_arg_test_ids(param):
+    if isinstance(param, type):
+        return param.__name__
+    elif isinstance(param, dict):
+        return "/".join(param.keys())
+    else:
+        raise NotImplementedError
+
+
+@pytest.mark.parametrize(
+    "message_class, init_args",
+    [
+        # EPStatusReport requires: endpoint_id, ep_status_report, task_statuses
+        (EPStatusReport, {"ep_status_report": {}, "task_statuses": {}}),
+        (EPStatusReport, {"endpoint_id": ID_ZERO, "task_statuses": {}}),
+        (EPStatusReport, {"endpoint_id": ID_ZERO, "ep_status_report": {}}),
+        # ManagerStatusReport requires: task_statuses
+        (ManagerStatusReport, {}),
+        # Task requires: task_id, container_id, task_buffer
+        (Task, {"container_id": ID_ZERO, "task_buffer": "foo data"}),
+        (Task, {"task_id": ID_ZERO, "task_buffer": "foo data"}),
+        (Task, {"task_id": ID_ZERO, "container_id": ID_ZERO}),
+        # TaskCancel requires: task_id
+        (TaskCancel, {}),
+        # Result requires: task_id, data
+        (Result, {"data": "foo-bar-baz", "error_details": None}),
+        (Result, {"task_id": ID_ZERO, "error_details": None}),
+        # if Result.error_details is not null, it requires:
+        #   code, user_message
+        (
+            Result,
+            {
+                "task_id": ID_ZERO,
+                "data": "foo-bar-baz",
+                "error_details": {
+                    "user_message": "something bad happened",
+                },
+            },
+        ),
+        (
+            Result,
+            {
+                "task_id": ID_ZERO,
+                "data": "foo-bar-baz",
+                "error_details": {
+                    "code": "ManagerLost",
+                },
+            },
+        ),
+    ],
+    ids=_required_arg_test_ids,
+)
+def test_message_missing_required_fields(message_class, init_args):
+    with pytest.raises(pydantic.ValidationError):
+        message_class(**init_args)
+
+
+@pytest.mark.parametrize(
+    "details, expect",
+    [
+        (None, False),
+        (
+            ResultErrorDetails(
+                user_message="foo",
+                code="ContainerError",
+            ),
+            True,
+        ),
+    ],
+)
+def test_result_is_error(details, expect):
+    val = Result(task_id=ID_ZERO, data="foo", error_details=details)
+    assert val.is_error is expect
 
 
 def test_invalid_uuid_rejected_on_init():
@@ -179,18 +300,23 @@ def test_failure_on_empty_buffer(v1_packer):
 def test_unknown_data_fields_warn(v1_packer, caplog):
     buf = crudely_pack_data(
         {
-            "message_type": "heartbeat",
-            "data": {"endpoint_id": str(ID_ZERO), "foo_field": "bar"},
+            "message_type": "task",
+            "data": {
+                "task_id": str(ID_ZERO),
+                "container_id": str(ID_ZERO),
+                "task_buffer": "foo",
+                "foo_field": "bar",
+            },
         }
     )
     with caplog.at_level(logging.WARNING, logger="funcx_common"):
         msg = v1_packer.unpack(buf)
         # successfully unpacked
-        assert isinstance(msg, Heartbeat)
+        assert isinstance(msg, Task)
     # but logged a warning (do two assertions so as not to insist on a precise format
     # for the logged fields
     assert (
-        "encountered unknown data fields while reading a heartbeat message:"
+        "encountered unknown data fields while reading a task message:"
     ) in caplog.text
     assert "foo_field" in caplog.text
 
@@ -198,19 +324,23 @@ def test_unknown_data_fields_warn(v1_packer, caplog):
 def test_unknown_envelope_fields_warn(v1_packer, caplog):
     buf = crudely_pack_data(
         {
-            "message_type": "heartbeat",
-            "data": {"endpoint_id": str(ID_ZERO)},
+            "message_type": "task",
+            "data": {
+                "task_id": str(ID_ZERO),
+                "container_id": str(ID_ZERO),
+                "task_buffer": "foo",
+            },
             "unexpected_fieldname": "foo",
         }
     )
     with caplog.at_level(logging.WARNING, logger="funcx_common"):
         msg = v1_packer.unpack(buf)
         # successfully unpacked
-        assert isinstance(msg, Heartbeat)
+        assert isinstance(msg, Task)
     # but logged a warning (do two assertions so as not to insist on a precise format
     # for the logged fields
     assert (
-        "encountered unknown envelope fields while reading a heartbeat message:"
+        "encountered unknown envelope fields while reading a task message:"
     ) in caplog.text
     assert "unexpected_fieldname" in caplog.text
 
