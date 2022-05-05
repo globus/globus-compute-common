@@ -1,3 +1,6 @@
+import random
+import string
+
 import pytest
 
 
@@ -31,3 +34,11 @@ def _unset_envvar_if_set(monkeypatch):
     # test behaviors from changing
     # TODO: allow use of the redis URL env var to control test behavior
     monkeypatch.delenv("FUNCX_COMMON_REDIS_URL", raising=False)
+
+
+@pytest.fixture
+def randomstring():
+    def func(length=5, alphabet=string.ascii_letters):
+        return "".join(random.choice(alphabet) for _ in range(length))
+
+    return func
