@@ -36,3 +36,8 @@ class MessagePacker:
                 f"message had unknown protocol version {protocol_version}"
             )
         return impl.unpack(buf)
+
+
+DEFAULT_MESSAGE_PACKER = MessagePacker()
+pack = DEFAULT_MESSAGE_PACKER.pack
+unpack = DEFAULT_MESSAGE_PACKER.unpack

@@ -5,7 +5,12 @@ import uuid
 import pydantic
 import pytest
 
-from funcx_common.messagepack import MessagePacker, UnrecognizedProtocolVersion
+from funcx_common.messagepack import (
+    MessagePacker,
+    UnrecognizedProtocolVersion,
+    pack,
+    unpack,
+)
 from funcx_common.messagepack.message_types import (
     EPStatusReport,
     ManagerStatusReport,
@@ -21,11 +26,6 @@ ID_ZERO = uuid.UUID(int=0)
 
 def crudely_pack_data(data):
     return b"\x01" + json.dumps(data, separators=(",", ":")).encode()
-
-
-@pytest.fixture
-def v1_packer():
-    return MessagePacker(default_protocol_version=1)
 
 
 @pytest.mark.parametrize(
@@ -112,13 +112,22 @@ def v1_packer():
         ),
     ],
 )
-def test_pack_and_unpack_v1(v1_packer, message_class, init_args, expect_values):
+@pytest.mark.parametrize("protocol_version", [None, 1])
+def test_pack_and_unpack(message_class, init_args, expect_values, protocol_version):
+    if protocol_version is None:
+        do_pack = pack
+        do_unpack = unpack
+    else:
+        packer = MessagePacker(default_protocol_version=protocol_version)
+        do_pack = packer.pack
+        do_unpack = packer.unpack
+
     if expect_values is None:
         expect_values = init_args
 
     message_obj = message_class(**init_args)
 
-    on_wire = v1_packer.pack(message_obj)
+    on_wire = do_pack(message_obj)
     # first byte (version byte) "1"
     assert on_wire[0:1] == b"\x01"
     # body is JSON, and valid
@@ -126,7 +135,7 @@ def test_pack_and_unpack_v1(v1_packer, message_class, init_args, expect_values):
     assert "message_type" in payload
     assert "data" in payload
 
-    message_obj2 = v1_packer.unpack(on_wire)
+    message_obj2 = do_unpack(on_wire)
     assert isinstance(message_obj2, message_class)
     for k, v in expect_values.items():
         assert hasattr(message_obj2, k)
@@ -219,7 +228,7 @@ def test_invalid_uuid_rejected_on_init():
         Task(task_id="foo", container_id=ID_ZERO, task_buffer="foo")
 
 
-def test_invalid_uuid_rejected_on_unpack(v1_packer):
+def test_invalid_uuid_rejected_on_unpack():
     buf_valid = crudely_pack_data(
         {
             "message_type": "task",
@@ -230,7 +239,7 @@ def test_invalid_uuid_rejected_on_unpack(v1_packer):
             },
         }
     )
-    v1_packer.unpack(buf_valid)
+    unpack(buf_valid)
 
     buf_invalid = crudely_pack_data(
         {
@@ -243,31 +252,31 @@ def test_invalid_uuid_rejected_on_unpack(v1_packer):
         }
     )
     with pytest.raises(pydantic.ValidationError):
-        v1_packer.unpack(buf_invalid)
+        unpack(buf_invalid)
 
 
-def test_cannot_unpack_unknown_message_type(v1_packer):
+def test_cannot_unpack_unknown_message_type():
     buf = crudely_pack_data({"message_type": "foo", "data": {}})
     with pytest.raises(pydantic.ValidationError):
-        v1_packer.unpack(buf)
+        unpack(buf)
 
 
-def test_cannot_unpack_message_missing_data(v1_packer):
+def test_cannot_unpack_message_missing_data():
     buf = crudely_pack_data({"message_type": "task"})
     with pytest.raises(pydantic.ValidationError):
-        v1_packer.unpack(buf)
+        unpack(buf)
 
 
-def test_cannot_unpack_message_missing_type(v1_packer):
+def test_cannot_unpack_message_missing_type():
     buf = crudely_pack_data({"data": {}})
     with pytest.raises(pydantic.ValidationError):
-        v1_packer.unpack(buf)
+        unpack(buf)
 
 
-def test_cannot_unpack_message_empty_data(v1_packer):
+def test_cannot_unpack_message_empty_data():
     buf = crudely_pack_data({"message_type": "task", "data": {}})
     with pytest.raises(pydantic.ValidationError):
-        v1_packer.unpack(buf)
+        unpack(buf)
 
 
 @pytest.mark.parametrize(
@@ -278,26 +287,26 @@ def test_cannot_unpack_message_empty_data(v1_packer):
         ({"message_type": "task", "data": None}, "none is not an allowed value"),
     ],
 )
-def test_cannot_unpack_message_wrong_type(v1_packer, payload, expect_err):
+def test_cannot_unpack_message_wrong_type(payload, expect_err):
     buf = crudely_pack_data(payload)
     with pytest.raises(pydantic.ValidationError) as excinfo:
-        v1_packer.unpack(buf)
+        unpack(buf)
     assert expect_err in str(excinfo.value)
 
 
-def test_cannot_unpack_unrecognized_protocol_version(v1_packer):
+def test_cannot_unpack_unrecognized_protocol_version():
     buf = crudely_pack_data({"message_type": "foo", "data": {}})
     buf = b"\x02" + buf[1:]
     with pytest.raises(UnrecognizedProtocolVersion):
-        v1_packer.unpack(buf)
+        unpack(buf)
 
 
-def test_failure_on_empty_buffer(v1_packer):
+def test_failure_on_empty_buffer():
     with pytest.raises(ValueError):
-        v1_packer.unpack(b"")
+        unpack(b"")
 
 
-def test_unknown_data_fields_warn(v1_packer, caplog):
+def test_unknown_data_fields_warn(caplog):
     buf = crudely_pack_data(
         {
             "message_type": "task",
@@ -310,7 +319,7 @@ def test_unknown_data_fields_warn(v1_packer, caplog):
         }
     )
     with caplog.at_level(logging.WARNING, logger="funcx_common"):
-        msg = v1_packer.unpack(buf)
+        msg = unpack(buf)
         # successfully unpacked
         assert isinstance(msg, Task)
     # but logged a warning (do two assertions so as not to insist on a precise format
@@ -321,7 +330,7 @@ def test_unknown_data_fields_warn(v1_packer, caplog):
     assert "foo_field" in caplog.text
 
 
-def test_unknown_envelope_fields_warn(v1_packer, caplog):
+def test_unknown_envelope_fields_warn(caplog):
     buf = crudely_pack_data(
         {
             "message_type": "task",
@@ -334,7 +343,7 @@ def test_unknown_envelope_fields_warn(v1_packer, caplog):
         }
     )
     with caplog.at_level(logging.WARNING, logger="funcx_common"):
-        msg = v1_packer.unpack(buf)
+        msg = unpack(buf)
         # successfully unpacked
         assert isinstance(msg, Task)
     # but logged a warning (do two assertions so as not to insist on a precise format
