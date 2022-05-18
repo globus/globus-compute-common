@@ -394,3 +394,43 @@ def test_meta_decorator():
 
     assert hasattr(MyMessage4, "Meta")
     assert MyMessage4.Meta.foo == 1
+
+
+def test_result_with_timing_info():
+    # create Result message with timing
+    val = Result(task_id=ID_ZERO, data="foo", exec_start_ms=10, exec_end_ms=25)
+    assert val.exec_duration_ms == 15
+
+    # put it on the wire and confirm that it does not include the duration info
+    on_wire = pack(val)
+    payload = json.loads(on_wire[1:])
+    body = payload["data"]
+    assert "_exec_duration_ms" not in body
+    assert "exec_duration_ms" not in body
+    assert "exec_start_ms" in body
+    assert "exec_end_ms" in body
+
+    # load from the wire format and confirm that the timing info is still present
+    reconstituted = unpack(on_wire)
+    assert reconstituted.exec_start_ms == 10
+    assert reconstituted.exec_end_ms == 25
+    assert reconstituted.exec_duration_ms == 15
+
+
+def test_result_without_timing_info():
+    # create Result message without timing
+    noinfo = Result(task_id=ID_ZERO, data="foo")
+    assert noinfo.exec_start_ms is None
+    assert noinfo.exec_end_ms is None
+    assert noinfo.exec_duration_ms is None
+
+    # create Result messages with partial (i.e. invalid) timing info
+    noend = Result(task_id=ID_ZERO, data="foo", exec_start_ms=10)
+    assert noend.exec_start_ms == 10
+    assert noend.exec_end_ms is None
+    assert noend.exec_duration_ms is None
+
+    nostart = Result(task_id=ID_ZERO, data="foo", exec_end_ms=25)
+    assert nostart.exec_start_ms is None
+    assert nostart.exec_end_ms == 25
+    assert nostart.exec_duration_ms is None
