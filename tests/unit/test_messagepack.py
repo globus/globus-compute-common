@@ -128,8 +128,10 @@ def test_pack_and_unpack(message_class, init_args, expect_values, protocol_versi
     message_obj = message_class(**init_args)
 
     on_wire = do_pack(message_obj)
-    # first byte (version byte) "1"
-    assert on_wire[0:1] == b"\x01"
+    # first byte (version byte)
+    if protocol_version is not None:
+        # 1 -> b"\x01" , and so forth
+        assert on_wire[0:1] == chr(protocol_version).encode()
     # body is JSON, and valid
     payload = json.loads(on_wire[1:])
     assert "message_type" in payload
