@@ -18,6 +18,15 @@ class Message(BaseModel):
     def message_type(self) -> str:
         return self.Meta.message_type
 
+    # common Config for all of our pydantic models
+    class Config:
+        # set this flag to allow underscore-prefixed attrs to be used rather than
+        # pydantic.PrivateAttr to declare instance variables on models which are
+        # not part of the serialized data
+        # see:
+        #   https://pydantic-docs.helpmanual.io/usage/models/#private-model-attributes
+        underscore_attrs_are_private = True
+
 
 # a handy class decorator for assigning fields to the internal Meta class
 # correctly subclasses any Meta which might be defined on a message type
