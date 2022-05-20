@@ -2,6 +2,26 @@
 
 <!-- scriv-insert-here -->
 
+## 0.0.13 (2022-05-20)
+
+### Added
+
+- `funcx_common.messagepack` now provides a default `MessagePacker` instance,
+  created at import time. This also allows for `pack` and `unpack` methods to
+  be provided as functions from the package. The following names are now
+  available for import and use:
+
+  - `funcx_common.messagepack.DEFAULT_MESSAGE_PACKER`
+  - `funcx_common.messagepack.pack`
+  - `funcx_common.messagepack.unpack`
+
+- `funcx_common.messagepack.message_types.Result` now supports two new
+  optional attributes: `exec_start_ms` and `exec_end_ms`, for execution timing
+  info in milliseconds since epoch.
+
+- `funcx_common.messagepack.message_types.Result` has a computed property
+  `exec_duration_ms` which takes `exec_end_ms - exec_start_ms`
+
 ## 0.0.12 (2022-02-15)
 
 ### Added
