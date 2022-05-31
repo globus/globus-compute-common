@@ -4,9 +4,10 @@ repos:
   hooks:
     - id: check-merge-conflict
     - id: trailing-whitespace
-- repo: https://github.com/sirosen/check-jsonschema
+- repo: https://github.com/python-jsonschema/check-jsonschema
   rev: 0.15.1
   hooks:
+    - id: check-dependabot
     - id: check-github-workflows
 - repo: https://github.com/psf/black
   rev: 22.3.0
