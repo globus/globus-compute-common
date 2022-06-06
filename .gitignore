@@ -11,3 +11,6 @@ build
 # pytest
 .pytest_cache
 .coverage
+
+# Visual Studio Code
+.vscode/
