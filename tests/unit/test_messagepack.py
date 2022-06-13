@@ -167,9 +167,8 @@ def _required_arg_test_ids(param):
         (EPStatusReport, {"endpoint_id": ID_ZERO, "ep_status_report": {}}),
         # ManagerStatusReport requires: task_statuses
         (ManagerStatusReport, {}),
-        # Task requires: task_id, container_id, task_buffer
+        # Task requires: task_id, task_buffer
         (Task, {"container_id": ID_ZERO, "task_buffer": "foo data"}),
-        (Task, {"task_id": ID_ZERO, "task_buffer": "foo data"}),
         (Task, {"task_id": ID_ZERO, "container_id": ID_ZERO}),
         # TaskCancel requires: task_id
         (TaskCancel, {}),
