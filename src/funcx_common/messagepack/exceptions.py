@@ -11,3 +11,10 @@ class UnrecognizedProtocolVersion(InvalidMessageError):
     When attempting to unpack a message, found a protocol version which was not
     supported.
     """
+
+
+class WrongMessageTypeError(InvalidMessageError):
+    """
+    Raised when a message has its type asserted and the type does not match the code's
+    expectations.
+    """

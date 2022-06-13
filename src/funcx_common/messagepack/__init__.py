@@ -1,4 +1,8 @@
-from .exceptions import InvalidMessageError, UnrecognizedProtocolVersion
+from .exceptions import (
+    InvalidMessageError,
+    UnrecognizedProtocolVersion,
+    WrongMessageTypeError,
+)
 from .message_types import Message
 from .packer import DEFAULT_MESSAGE_PACKER, MessagePacker, pack, unpack
 
@@ -13,4 +17,5 @@ __all__ = (
     # errors
     "InvalidMessageError",
     "UnrecognizedProtocolVersion",
+    "WrongMessageTypeError",
 )

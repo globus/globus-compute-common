@@ -8,6 +8,7 @@ import pytest
 from funcx_common.messagepack import (
     MessagePacker,
     UnrecognizedProtocolVersion,
+    WrongMessageTypeError,
     pack,
     unpack,
 )
@@ -450,3 +451,17 @@ def test_result_without_timing_info():
     assert nostart.exec_start_ms is None
     assert nostart.exec_end_ms == 25
     assert nostart.exec_duration_ms is None
+
+
+def test_messages_can_assert_type():
+    message = Task(task_id=ID_ZERO, container_id=ID_ZERO, task_buffer="foo")
+    # ok cases
+    message.assert_one_of_types(Task)
+    message.assert_one_of_types(Task, Result)
+    message.assert_one_of_types(Result, Task, EPStatusReport)
+
+    # failing cases
+    with pytest.raises(WrongMessageTypeError):
+        message.assert_one_of_types(Result, EPStatusReport)
+    with pytest.raises(WrongMessageTypeError):
+        message.assert_one_of_types()

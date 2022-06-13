@@ -4,6 +4,8 @@ import typing as t
 
 from pydantic import BaseModel
 
+from ..exceptions import WrongMessageTypeError
+
 MT = t.TypeVar("MT", bound=t.Type["Message"])
 
 
@@ -26,6 +28,12 @@ class Message(BaseModel):
         # see:
         #   https://pydantic-docs.helpmanual.io/usage/models/#private-model-attributes
         underscore_attrs_are_private = True
+
+    def assert_one_of_types(self, *message_types: type[Message]) -> None:
+        if not isinstance(self, message_types):
+            raise WrongMessageTypeError(
+                f"expected {message_types} but got {type(self)}"
+            )
 
 
 # a handy class decorator for assigning fields to the internal Meta class
