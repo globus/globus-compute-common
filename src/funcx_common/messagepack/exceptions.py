@@ -13,7 +13,7 @@ class UnrecognizedProtocolVersion(InvalidMessageError):
     """
 
 
-class WrongMessageTypeError(ValueError):
+class WrongMessageTypeError(InvalidMessageError):
     """
     Raised when a message has its type asserted and the type does not match the code's
     expectations.
