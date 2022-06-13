@@ -2,6 +2,23 @@
 
 <!-- scriv-insert-here -->
 
+## 0.0.14 (2022-06-13)
+
+### Changed
+
+- `Task` messages no longer require `container_id`, in support of running tasks that don't require containers.
+
+### Added
+
+- An `sdk_version_sharing` module for centralizing the behavior where the SDK sends its version string to the Web Service for logging.
+
+- A new error class has been added, `messagepack.WrongMessageTypeError`
+
+- All `messagepack.Message` objects now support a new method,
+  `assert_one_of_types`, which takes `Message` subclasses as arguments and
+  raises a `WrongMessageTypeError` if `isinstance(..., message_types)` does not
+  pass
+
 ## 0.0.13 (2022-05-20)
 
 ### Added
