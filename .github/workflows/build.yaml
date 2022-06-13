@@ -10,7 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-python@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
       - run: python -m pip install tox
       - run: python -m tox -e mypy
 
@@ -29,7 +31,7 @@ jobs:
       - name: start redis
         if: runner.os == 'Linux'
         uses: ./.github/actions/redis
-      - uses: actions/setup-python@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
       - name: install tox
