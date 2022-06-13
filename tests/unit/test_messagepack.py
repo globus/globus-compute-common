@@ -60,6 +60,23 @@ def crudely_pack_data(data):
             },
             None,
         ),
+        (
+            Task,
+            {
+                "task_id": uuid.UUID("058cf505-a09e-4af3-a5f2-eb2e931af141"),
+                "container_id": None,
+                "task_buffer": "foo data",
+            },
+            None,
+        ),
+        (
+            Task,
+            {
+                "task_id": uuid.UUID("058cf505-a09e-4af3-a5f2-eb2e931af141"),
+                "task_buffer": "foo data",
+            },
+            None,
+        ),
         (TaskCancel, {"task_id": ID_ZERO}, None),
         (
             Result,
