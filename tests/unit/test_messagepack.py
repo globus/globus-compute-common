@@ -60,6 +60,23 @@ def crudely_pack_data(data):
             },
             None,
         ),
+        (
+            Task,
+            {
+                "task_id": uuid.UUID("058cf505-a09e-4af3-a5f2-eb2e931af141"),
+                "container_id": None,
+                "task_buffer": "foo data",
+            },
+            None,
+        ),
+        (
+            Task,
+            {
+                "task_id": uuid.UUID("058cf505-a09e-4af3-a5f2-eb2e931af141"),
+                "task_buffer": "foo data",
+            },
+            None,
+        ),
         (TaskCancel, {"task_id": ID_ZERO}, None),
         (
             Result,
@@ -167,9 +184,8 @@ def _required_arg_test_ids(param):
         (EPStatusReport, {"endpoint_id": ID_ZERO, "ep_status_report": {}}),
         # ManagerStatusReport requires: task_statuses
         (ManagerStatusReport, {}),
-        # Task requires: task_id, container_id, task_buffer
+        # Task requires: task_id, task_buffer
         (Task, {"container_id": ID_ZERO, "task_buffer": "foo data"}),
-        (Task, {"task_id": ID_ZERO, "task_buffer": "foo data"}),
         (Task, {"task_id": ID_ZERO, "container_id": ID_ZERO}),
         # TaskCancel requires: task_id
         (TaskCancel, {}),
