@@ -1,5 +1,4 @@
 import typing as t
-
 import uuid
 
 from .base import Message, meta
