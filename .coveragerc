@@ -1,8 +1,9 @@
 [run]
-parallel = True
+include = src/funcx_common/*
 
 [report]
 show_missing = True
+skip_covered = True
 
 omit = src/funcx_common/funcx_flake8.py
 
