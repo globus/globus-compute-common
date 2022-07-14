@@ -1,3 +1,4 @@
+import random
 import uuid
 
 import pytest
@@ -17,6 +18,11 @@ if not has_redis or not LOCAL_REDIS_REACHABLE:
     pytest.skip(
         "these tests only run with access to local redis", allow_module_level=True
     )
+
+
+@pytest.fixture(autouse=True)
+def lower_ttl_for_test():
+    RedisTask.DEFAULT_TTL = 10  # Play nice with local infrastructure
 
 
 @pytest.fixture
@@ -96,3 +102,15 @@ def test_redis_task_load(redis_client):
     # load works
     task = RedisTask.load(redis_client, task_id)
     assert isinstance(task, RedisTask)
+
+
+def test_redis_state_log(redis_client):
+    task_id = str(uuid.uuid4())
+
+    rt = RedisTask(redis_client, task_id)
+    to_store = [f"some message: {i}" for i in range(random.randrange(1, 10))]
+    for msg in to_store:
+        rt.status_log = msg
+
+    assert to_store == rt.status_log
+    assert 0 < redis_client.ttl(rt.state_log_name) <= rt.DEFAULT_TTL
