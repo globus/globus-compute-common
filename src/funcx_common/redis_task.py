@@ -1,3 +1,4 @@
+import json
 import typing as t
 
 from .redis import (
@@ -126,6 +127,7 @@ class RedisTask(TaskProtocol, metaclass=HasRedisFieldsMeta):
         """
         # non-RedisField attributes of a RedisTask
         self.hname = f"task_{task_id}"
+        self.state_log_name = f"{self.hname}:state_log"
         self.redis_client = redis_client
         self.task_id = task_id
 
@@ -186,3 +188,14 @@ class RedisTask(TaskProtocol, metaclass=HasRedisFieldsMeta):
         if not cls.exists(redis_client, task_id):
             raise ValueError(f"Cannot load task {task_id}: does not exist")
         return cls(redis_client, task_id)
+
+    @property
+    def status_log(self) -> t.Iterable[t.Any]:
+        return [
+            json.loads(i) for i in self.redis_client.lrange(self.state_log_name, 0, -1)
+        ]
+
+    @status_log.setter
+    def status_log(self, new_state: t.Any) -> None:
+        self.redis_client.rpush(self.state_log_name, json.dumps(new_state))
+        self.redis_client.expire(self.state_log_name, self.DEFAULT_TTL)
