@@ -7,6 +7,8 @@ class TaskState(str, enum.Enum):
     WAITING_FOR_EP = "waiting-for-ep"  # while waiting for ep to accept/be online
     WAITING_FOR_NODES = "waiting-for-nodes"  # jobs are pending at the scheduler
     WAITING_FOR_LAUNCH = "waiting-for-launch"
+    EXEC_START = "execution-start"
+    EXEC_END = "execution-end"
     RUNNING = "running"
     SUCCESS = "success"
     FAILED = "failed"

@@ -22,6 +22,8 @@ from funcx_common.messagepack.message_types import (
 )
 from funcx_common.messagepack.message_types.base import Message, meta
 
+from funcx_common.tasks.constants import TaskState
+
 ID_ZERO = uuid.UUID(int=0)
 
 
@@ -415,42 +417,42 @@ def test_meta_decorator():
 
 def test_result_with_timing_info():
     # create Result message with timing
-    val = Result(task_id=ID_ZERO, data="foo", exec_start_ms=10, exec_end_ms=25)
-    assert val.exec_duration_ms == 15
+    val = Result(task_id=ID_ZERO, data="foo", 
+                 statuses=[(10, TaskState.EXEC_START), 
+                           (25, TaskState.EXEC_END)])
 
-    # put it on the wire and confirm that it does not include the duration info
+    # put it on the wire and confirm that it is correctly formed
     on_wire = pack(val)
     payload = json.loads(on_wire[1:])
     body = payload["data"]
-    assert "_exec_duration_ms" not in body
-    assert "exec_duration_ms" not in body
-    assert "exec_start_ms" in body
-    assert "exec_end_ms" in body
+    assert "statuses" in body
+    times = body["statuses"]
+    assert TaskState.EXEC_START in times[0]
+    assert TaskState.EXEC_END in times[1]
 
     # load from the wire format and confirm that the timing info is still present
     reconstituted = unpack(on_wire)
-    assert reconstituted.exec_start_ms == 10
-    assert reconstituted.exec_end_ms == 25
-    assert reconstituted.exec_duration_ms == 15
+    assert reconstituted.statuses[0][0] == 10
+    assert reconstituted.statuses[1][0] == 25
 
 
 def test_result_without_timing_info():
     # create Result message without timing
     noinfo = Result(task_id=ID_ZERO, data="foo")
-    assert noinfo.exec_start_ms is None
-    assert noinfo.exec_end_ms is None
-    assert noinfo.exec_duration_ms is None
+    assert noinfo.statuses is None
 
     # create Result messages with partial (i.e. invalid) timing info
-    noend = Result(task_id=ID_ZERO, data="foo", exec_start_ms=10)
-    assert noend.exec_start_ms == 10
-    assert noend.exec_end_ms is None
-    assert noend.exec_duration_ms is None
+    noend = Result(task_id=ID_ZERO, data="foo", statuses=[(10, TaskState.EXEC_START)])
+    
+    assert noend.statuses[0][0] == 10
+    assert noend.statuses[0][1] == TaskState.EXEC_START
+    assert len(noend.statuses) == 1
 
-    nostart = Result(task_id=ID_ZERO, data="foo", exec_end_ms=25)
-    assert nostart.exec_start_ms is None
-    assert nostart.exec_end_ms == 25
-    assert nostart.exec_duration_ms is None
+    nostart = Result(task_id=ID_ZERO, data="foo", statuses=[(25, TaskState.EXEC_END)])
+
+    assert nostart.statuses[0][0] == 25
+    assert nostart.statuses[0][1] == TaskState.EXEC_END
+    assert len(noend.statuses) == 1
 
 
 def test_messages_can_assert_type():
