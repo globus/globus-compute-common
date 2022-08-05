@@ -21,8 +21,7 @@ from funcx_common.messagepack.message_types import (
     TaskCancel,
 )
 from funcx_common.messagepack.message_types.base import Message, meta
-
-from funcx_common.tasks.constants import TaskState
+from funcx_common.tasks.constants import ActorName, TaskState
 
 ID_ZERO = uuid.UUID(int=0)
 
@@ -417,9 +416,14 @@ def test_meta_decorator():
 
 def test_result_with_timing_info():
     # create Result message with timing
-    val = Result(task_id=ID_ZERO, data="foo", 
-                 statuses=[(10, TaskState.EXEC_START), 
-                           (25, TaskState.EXEC_END)])
+    val = Result(
+        task_id=ID_ZERO,
+        data="foo",
+        statuses=[
+            (10, TaskState.EXEC_START, ActorName.WORKER),
+            (25, TaskState.EXEC_END, ActorName.MANAGER),
+        ],
+    )
 
     # put it on the wire and confirm that it is correctly formed
     on_wire = pack(val)
@@ -430,10 +434,18 @@ def test_result_with_timing_info():
     assert TaskState.EXEC_START in times[0]
     assert TaskState.EXEC_END in times[1]
 
+    assert ActorName.WORKER in times[0]
+    assert ActorName.MANAGER in times[1]
+
     # load from the wire format and confirm that the timing info is still present
     reconstituted = unpack(on_wire)
     assert reconstituted.statuses[0][0] == 10
+    assert reconstituted.statuses[0][1] == TaskState.EXEC_START
+    assert reconstituted.statuses[0][2] == ActorName.WORKER
+
     assert reconstituted.statuses[1][0] == 25
+    assert reconstituted.statuses[1][1] == TaskState.EXEC_END
+    assert reconstituted.statuses[1][2] == ActorName.MANAGER
 
 
 def test_result_without_timing_info():
@@ -442,16 +454,26 @@ def test_result_without_timing_info():
     assert noinfo.statuses is None
 
     # create Result messages with partial (i.e. invalid) timing info
-    noend = Result(task_id=ID_ZERO, data="foo", statuses=[(10, TaskState.EXEC_START)])
-    
+    noend = Result(
+        task_id=ID_ZERO,
+        data="foo",
+        statuses=[(10, TaskState.EXEC_START, ActorName.WORKER)],
+    )
+
     assert noend.statuses[0][0] == 10
     assert noend.statuses[0][1] == TaskState.EXEC_START
+    assert noend.statuses[0][2] == ActorName.WORKER
     assert len(noend.statuses) == 1
 
-    nostart = Result(task_id=ID_ZERO, data="foo", statuses=[(25, TaskState.EXEC_END)])
+    nostart = Result(
+        task_id=ID_ZERO,
+        data="foo",
+        statuses=[(25, TaskState.EXEC_END, ActorName.WORKER)],
+    )
 
     assert nostart.statuses[0][0] == 25
     assert nostart.statuses[0][1] == TaskState.EXEC_END
+    assert nostart.statuses[0][2] == ActorName.WORKER
     assert len(noend.statuses) == 1
 
 

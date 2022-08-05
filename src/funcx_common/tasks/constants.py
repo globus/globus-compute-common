@@ -17,3 +17,12 @@ class TaskState(str, enum.Enum):
 class InternalTaskState(str, enum.Enum):
     INCOMPLETE = "incomplete"
     COMPLETE = "complete"
+
+
+class ActorName(str, enum.Enum):
+    WORKER = "worker"
+    MANAGER = "manager"
+    INTERCHANGE = "interchange"
+    ENDPOINT = "endpoint"
+    RESULT_PROCESSOR = "result-processor"
+    WEB_SERVICE = "web-service"
