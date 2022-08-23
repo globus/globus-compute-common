@@ -19,6 +19,7 @@ from funcx_common.messagepack.message_types import (
     ResultErrorDetails,
     Task,
     TaskCancel,
+    TaskTransition,
 )
 from funcx_common.messagepack.message_types.base import Message, meta
 from funcx_common.tasks.constants import ActorName, TaskState
@@ -419,9 +420,13 @@ def test_result_with_timing_info():
     val = Result(
         task_id=ID_ZERO,
         data="foo",
-        statuses=[
-            (10, TaskState.EXEC_START, ActorName.WORKER),
-            (25, TaskState.EXEC_END, ActorName.MANAGER),
+        transitions=[
+            TaskTransition(
+                timestamp=10, state=TaskState.EXEC_START, actor=ActorName.WORKER
+            ),
+            TaskTransition(
+                timestamp=25, state=TaskState.EXEC_END, actor=ActorName.MANAGER
+            ),
         ],
     )
 
@@ -429,52 +434,26 @@ def test_result_with_timing_info():
     on_wire = pack(val)
     payload = json.loads(on_wire[1:])
     body = payload["data"]
-    assert "statuses" in body
-    times = body["statuses"]
-    assert TaskState.EXEC_START in times[0]
-    assert TaskState.EXEC_END in times[1]
+    assert "transitions" in body
+    print(body)
+    transitions = body["transitions"]
+    assert transitions[0]["timestamp"] == 10
+    assert transitions[0]["state"] == TaskState.EXEC_START
+    assert transitions[0]["actor"] == ActorName.WORKER
 
-    assert ActorName.WORKER in times[0]
-    assert ActorName.MANAGER in times[1]
+    assert transitions[1]["timestamp"] == 25
+    assert transitions[1]["state"] == TaskState.EXEC_END
+    assert transitions[1]["actor"] == ActorName.MANAGER
 
     # load from the wire format and confirm that the timing info is still present
     reconstituted = unpack(on_wire)
-    assert reconstituted.statuses[0][0] == 10
-    assert reconstituted.statuses[0][1] == TaskState.EXEC_START
-    assert reconstituted.statuses[0][2] == ActorName.WORKER
+    assert reconstituted.transitions[0].timestamp == 10
+    assert reconstituted.transitions[0].state == TaskState.EXEC_START
+    assert reconstituted.transitions[0].actor == ActorName.WORKER
 
-    assert reconstituted.statuses[1][0] == 25
-    assert reconstituted.statuses[1][1] == TaskState.EXEC_END
-    assert reconstituted.statuses[1][2] == ActorName.MANAGER
-
-
-def test_result_without_timing_info():
-    # create Result message without timing
-    noinfo = Result(task_id=ID_ZERO, data="foo")
-    assert noinfo.statuses is None
-
-    # create Result messages with partial (i.e. invalid) timing info
-    noend = Result(
-        task_id=ID_ZERO,
-        data="foo",
-        statuses=[(10, TaskState.EXEC_START, ActorName.WORKER)],
-    )
-
-    assert noend.statuses[0][0] == 10
-    assert noend.statuses[0][1] == TaskState.EXEC_START
-    assert noend.statuses[0][2] == ActorName.WORKER
-    assert len(noend.statuses) == 1
-
-    nostart = Result(
-        task_id=ID_ZERO,
-        data="foo",
-        statuses=[(25, TaskState.EXEC_END, ActorName.WORKER)],
-    )
-
-    assert nostart.statuses[0][0] == 25
-    assert nostart.statuses[0][1] == TaskState.EXEC_END
-    assert nostart.statuses[0][2] == ActorName.WORKER
-    assert len(noend.statuses) == 1
+    assert reconstituted.transitions[1].timestamp == 25
+    assert reconstituted.transitions[1].state == TaskState.EXEC_END
+    assert reconstituted.transitions[1].actor == ActorName.MANAGER
 
 
 def test_messages_can_assert_type():

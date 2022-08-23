@@ -6,6 +6,7 @@ from .manager_status_report import ManagerStatusReport
 from .result import Result, ResultErrorDetails
 from .task import Task
 from .task_cancel import TaskCancel
+from .task_transition import TaskTransition
 
 ALL_MESSAGE_CLASSES: t.Set[t.Type[Message]] = {
     EPStatusReport,
@@ -13,6 +14,7 @@ ALL_MESSAGE_CLASSES: t.Set[t.Type[Message]] = {
     Task,
     TaskCancel,
     Result,
+    TaskTransition,
 }
 
 __all__ = (
@@ -23,5 +25,6 @@ __all__ = (
     "TaskCancel",
     "Result",
     "ResultErrorDetails",
+    "TaskTransition",
     "ALL_MESSAGE_CLASSES",
 )

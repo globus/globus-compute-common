@@ -12,6 +12,8 @@ class TaskState(str, enum.Enum):
     RUNNING = "running"
     SUCCESS = "success"
     FAILED = "failed"
+    RESULT_RECEIVED = "result-received"
+    RESULT_ENQUEUED = "result-enqueued"
 
 
 class InternalTaskState(str, enum.Enum):
