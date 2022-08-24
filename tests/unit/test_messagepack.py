@@ -48,11 +48,49 @@ def crudely_pack_data(data):
             {"endpoint_id": ID_ZERO, "ep_status_report": {}, "task_statuses": {}},
             None,
         ),
+        (
+            EPStatusReport,
+            {
+                "endpoint_id": ID_ZERO,
+                "ep_status_report": {
+                    str(ID_ZERO): TaskTransition(
+                        timestamp=1,
+                        state=TaskState.EXEC_END,
+                        actor=ActorName.INTERCHANGE,
+                    )
+                },
+                "task_statuses": {},
+            },
+            None,
+        ),
+        (
+            EPStatusReport,
+            {
+                "endpoint_id": ID_ZERO,
+                "ep_status_report": {},
+                "task_statuses": {
+                    str(ID_ZERO): TaskTransition(
+                        timestamp=1,
+                        state=TaskState.EXEC_END,
+                        actor=ActorName.INTERCHANGE,
+                    )
+                },
+            },
+            None,
+        ),
         (ManagerStatusReport, {"task_statuses": {}}, None),
         (
             ManagerStatusReport,
-            {"task_statuses": {"foo": [ID_ZERO, "abc"]}},
-            {"task_statuses": {"foo": [str(ID_ZERO), "abc"]}},
+            {
+                "task_statuses": {
+                    "foo": TaskTransition(
+                        timestamp=1,
+                        state=TaskState.EXEC_END,
+                        actor=ActorName.INTERCHANGE,
+                    )
+                }
+            },
+            None,
         ),
         (
             Task,
@@ -129,6 +167,15 @@ def crudely_pack_data(data):
                 ),
             },
             None,  # result is identical
+        ),
+        (
+            TaskTransition,
+            {
+                "timestamp": 1,
+                "actor": ActorName.WORKER,
+                "state": TaskState.SUCCESS,
+            },
+            None,
         ),
     ],
 )
@@ -413,47 +460,6 @@ def test_meta_decorator():
 
     assert hasattr(MyMessage4, "Meta")
     assert MyMessage4.Meta.foo == 1
-
-
-def test_result_with_timing_info():
-    # create Result message with timing
-    val = Result(
-        task_id=ID_ZERO,
-        data="foo",
-        transitions=[
-            TaskTransition(
-                timestamp=10, state=TaskState.EXEC_START, actor=ActorName.WORKER
-            ),
-            TaskTransition(
-                timestamp=25, state=TaskState.EXEC_END, actor=ActorName.MANAGER
-            ),
-        ],
-    )
-
-    # put it on the wire and confirm that it is correctly formed
-    on_wire = pack(val)
-    payload = json.loads(on_wire[1:])
-    body = payload["data"]
-    assert "transitions" in body
-    print(body)
-    transitions = body["transitions"]
-    assert transitions[0]["timestamp"] == 10
-    assert transitions[0]["state"] == TaskState.EXEC_START
-    assert transitions[0]["actor"] == ActorName.WORKER
-
-    assert transitions[1]["timestamp"] == 25
-    assert transitions[1]["state"] == TaskState.EXEC_END
-    assert transitions[1]["actor"] == ActorName.MANAGER
-
-    # load from the wire format and confirm that the timing info is still present
-    reconstituted = unpack(on_wire)
-    assert reconstituted.transitions[0].timestamp == 10
-    assert reconstituted.transitions[0].state == TaskState.EXEC_START
-    assert reconstituted.transitions[0].actor == ActorName.WORKER
-
-    assert reconstituted.transitions[1].timestamp == 25
-    assert reconstituted.transitions[1].state == TaskState.EXEC_END
-    assert reconstituted.transitions[1].actor == ActorName.MANAGER
 
 
 def test_messages_can_assert_type():
