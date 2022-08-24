@@ -2,6 +2,7 @@ import typing as t
 import uuid
 
 from .base import Message, meta
+from .task_transition import TaskTransition
 
 
 @meta(message_type="ep_status_report")
@@ -14,4 +15,4 @@ class EPStatusReport(Message):
 
     endpoint_id: uuid.UUID
     ep_status_report: t.Dict[str, t.Any]
-    task_statuses: t.Dict[str, t.Any]
+    task_statuses: t.Dict[str, TaskTransition]

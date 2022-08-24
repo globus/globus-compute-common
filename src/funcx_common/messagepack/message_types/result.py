@@ -5,8 +5,8 @@ import uuid
 
 import pydantic
 
-from .task_transition import TaskTransition
 from .base import Message, meta
+from .task_transition import TaskTransition
 
 
 class ResultErrorDetails(pydantic.BaseModel):
@@ -21,7 +21,7 @@ class Result(Message):
     task_id: uuid.UUID
     data: str
     error_details: t.Optional[ResultErrorDetails]
-    transitions: t.Optional[t.List[TaskTransition]]
+    task_statuses: t.Optional[t.List[TaskTransition]]
 
     @property
     def is_error(self) -> bool:
