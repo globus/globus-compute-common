@@ -71,6 +71,7 @@ class RedisTask(TaskProtocol, metaclass=HasRedisFieldsMeta):
     function_id = t.cast(str, RedisField())
     container = t.cast(str, RedisField())
     task_group_id = t.cast(str, RedisField())
+    queue_name = t.cast(str, RedisField())
     # end required fields
 
     endpoint = t.cast(t.Optional[str], RedisField())
@@ -112,6 +113,7 @@ class RedisTask(TaskProtocol, metaclass=HasRedisFieldsMeta):
         payload: t.Optional[str] = None,
         payload_reference: t.Optional[t.Dict[str, t.Any]] = None,
         task_group_id: t.Optional[str] = None,
+        queue_name: t.Optional[str] = None,
     ):
         """
         If optional values are passed, then they will be written.
@@ -124,6 +126,7 @@ class RedisTask(TaskProtocol, metaclass=HasRedisFieldsMeta):
         :param container: UUID of container in which to run, as str
         :param payload: serialized function + input data
         :param task_group_id: UUID of task group that this task belongs to
+        :param queue_name: name of AMQP queue where results will be sent
         """
         # non-RedisField attributes of a RedisTask
         self.hname = f"task_{task_id}"
@@ -155,6 +158,8 @@ class RedisTask(TaskProtocol, metaclass=HasRedisFieldsMeta):
             self.payload_reference = payload_reference
         if task_group_id is not None:
             self.task_group_id = task_group_id
+        if queue_name is not None:
+            self.queue_name = queue_name
 
         self.ttl = self.DEFAULT_TTL
 

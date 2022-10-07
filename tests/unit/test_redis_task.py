@@ -41,6 +41,7 @@ def redis_client():
             "payload_reference": {"storage_id": "redis"},
         },
         {"task_group_id": "foo_id"},
+        {"queue_name": "foo_name"},
     ],
 )
 def test_redis_task_create(redis_client, add_kwargs):
@@ -67,6 +68,7 @@ def test_redis_task_create(redis_client, add_kwargs):
         "payload",
         "payload_reference",
         "task_group_id",
+        "queue_name",
     ]:
         assert getattr(task, attrname) == add_kwargs.get(attrname)
 
