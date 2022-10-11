@@ -2,6 +2,23 @@
 
 <!-- scriv-insert-here -->
 
+<a id='changelog-0.0.16'></a>
+## 0.0.16 (2022-10-11)
+
+### Added
+
+- Add `queue_name` field to `RedisTask`.  This specifies the name of the AMQP
+  queue where this task's result will be put or found.  If not set, this task's
+  result will not be placed into an AMQP queue.
+
+## 0.0.15 (2022-07-15)
+
+### Added
+
+- Added a `.status_log` property to the RedisTask object.  The state log
+  requires an atomic append, so this cannot be implemented as another field in
+  the RedisTask hash.  Instead, it is implemented as a top-level array.
+
 ## 0.0.14 (2022-06-13)
 
 ### Changed
