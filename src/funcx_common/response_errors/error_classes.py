@@ -1,3 +1,4 @@
+import datetime
 import typing as t
 import uuid
 
@@ -154,12 +155,48 @@ class EndpointAlreadyRegistered(FuncxResponseError):
     """Endpoint with specified uuid already registered by a different user"""
 
     code = ResponseErrorCode.ENDPOINT_ALREADY_REGISTERED
-    http_status_code = HTTPStatusCode.BAD_REQUEST
+    http_status_code = HTTPStatusCode.FORBIDDEN
 
     def __init__(self, ep_uuid: t.Union[uuid.UUID, str]) -> None:
         ep_uuid = str(ep_uuid)
         self.error_args = [ep_uuid]
         self.reason = f"Endpoint {ep_uuid} was already registered by a different user"
+        self.uuid = ep_uuid
+
+
+class EndpointInUseError(FuncxResponseError):
+    """Endpoint is already being used in another way.
+    i.e. The UUID is already being used by another active endpoint, or
+    the endpoint is already configured differently from a prior registration
+    """
+
+    code = ResponseErrorCode.RESOURCE_CONFLICT
+    http_status_code = HTTPStatusCode.RESOURCE_CONFLICT
+
+    def __init__(self, ep_uuid: t.Union[uuid.UUID, str], reason: str) -> None:
+        ep_uuid = str(ep_uuid)
+        self.error_args = [ep_uuid]
+        self.reason = f"Endpoint {ep_uuid} is already in use: {reason}"
+        self.uuid = ep_uuid
+
+
+class EndpointLockedError(FuncxResponseError):
+    """Endpoint with specified uuid cannot be registered until the lock expires"""
+
+    code = ResponseErrorCode.RESOURCE_LOCKED
+    http_status_code = HTTPStatusCode.RESOURCE_LOCKED
+
+    def __init__(
+        self,
+        ep_uuid: t.Union[uuid.UUID, str],
+        expire_ts: t.Optional[float] = None,
+    ) -> None:
+        ep_uuid = str(ep_uuid)
+        self.error_args = [ep_uuid]
+        self.reason = f"Endpoint id {ep_uuid} is temporarily locked from registration"
+        if expire_ts is not None:
+            expire_time = datetime.datetime.fromtimestamp(expire_ts).astimezone()
+            self.reason += f" until {expire_time.isoformat()}"
         self.uuid = ep_uuid
 
 

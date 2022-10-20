@@ -30,6 +30,8 @@ class ResponseErrorCode(IntEnum):
     INVALID_UUID = 22
     INVALID_AUTH_TOKEN = 23
     INSUFFICIENT_AUTH_SCOPE = 24
+    RESOURCE_LOCKED = 25
+    RESOURCE_CONFLICT = 26
 
 
 # a collection of the HTTP status error codes that the service would make use of
@@ -40,6 +42,8 @@ class HTTPStatusCode(IntEnum):
     FORBIDDEN = 403
     NOT_FOUND = 404
     REQUEST_TIMEOUT = 408
+    RESOURCE_CONFLICT = 409
+    RESOURCE_LOCKED = 423
     TOO_MANY_REQUESTS = 429
     INTERNAL_SERVER_ERROR = 500
     NOT_IMPLEMENTED = 501
