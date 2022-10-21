@@ -74,7 +74,7 @@ class RedisTask(TaskProtocol, metaclass=HasRedisFieldsMeta):
     queue_name = t.cast(str, RedisField())
     # end required fields
 
-    endpoint = t.cast(t.Optional[str], RedisField())
+    endpoint_id = t.cast(t.Optional[str], RedisField())
 
     # FIXME: `payload` is a string which is currently being round-tripped through the
     # JSON_SERDE. However, we cannot remove the use of the serde until we are prepared
@@ -114,6 +114,7 @@ class RedisTask(TaskProtocol, metaclass=HasRedisFieldsMeta):
         payload_reference: t.Optional[t.Dict[str, t.Any]] = None,
         task_group_id: t.Optional[str] = None,
         queue_name: t.Optional[str] = None,
+        endpoint_id: t.Optional[str] = None,
     ):
         """
         If optional values are passed, then they will be written.
@@ -127,6 +128,7 @@ class RedisTask(TaskProtocol, metaclass=HasRedisFieldsMeta):
         :param payload: serialized function + input data
         :param task_group_id: UUID of task group that this task belongs to
         :param queue_name: name of AMQP queue where results will be sent
+        :param endpoint_id: UUID of the endpoint the task was sent to
         """
         # non-RedisField attributes of a RedisTask
         self.hname = f"task_{task_id}"
@@ -160,6 +162,8 @@ class RedisTask(TaskProtocol, metaclass=HasRedisFieldsMeta):
             self.task_group_id = task_group_id
         if queue_name is not None:
             self.queue_name = queue_name
+        if endpoint_id is not None:
+            self.endpoint_id = endpoint_id
 
         self.ttl = self.DEFAULT_TTL
 
