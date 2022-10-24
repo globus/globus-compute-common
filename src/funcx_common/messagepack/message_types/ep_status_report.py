@@ -15,4 +15,4 @@ class EPStatusReport(Message):
 
     endpoint_id: uuid.UUID
     ep_status_report: t.Dict[str, t.Any]
-    task_statuses: t.Dict[str, TaskTransition]
+    task_statuses: t.Dict[str, t.List[TaskTransition]]
