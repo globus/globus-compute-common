@@ -11,4 +11,4 @@ class ManagerStatusReport(Message):
     saying which tasks are now RUNNING.
     """
 
-    task_statuses: t.Dict[str, TaskTransition]
+    task_statuses: t.Dict[str, t.List[TaskTransition]]

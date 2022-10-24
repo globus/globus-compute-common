@@ -53,11 +53,11 @@ def crudely_pack_data(data):
             {
                 "endpoint_id": ID_ZERO,
                 "ep_status_report": {
-                    str(ID_ZERO): TaskTransition(
+                    str(ID_ZERO): [TaskTransition(
                         timestamp=1,
                         state=TaskState.EXEC_END,
                         actor=ActorName.INTERCHANGE,
-                    )
+                    )]
                 },
                 "task_statuses": {},
             },
@@ -69,11 +69,11 @@ def crudely_pack_data(data):
                 "endpoint_id": ID_ZERO,
                 "ep_status_report": {},
                 "task_statuses": {
-                    str(ID_ZERO): TaskTransition(
+                    str(ID_ZERO): [TaskTransition(
                         timestamp=1,
                         state=TaskState.EXEC_END,
                         actor=ActorName.INTERCHANGE,
-                    )
+                    )]
                 },
             },
             None,
@@ -83,11 +83,11 @@ def crudely_pack_data(data):
             ManagerStatusReport,
             {
                 "task_statuses": {
-                    "foo": TaskTransition(
+                    "foo": [TaskTransition(
                         timestamp=1,
                         state=TaskState.EXEC_END,
                         actor=ActorName.INTERCHANGE,
-                    )
+                    )]
                 }
             },
             None,
