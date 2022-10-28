@@ -28,6 +28,16 @@ class FuncxRedisIntSerde(FuncxRedisSerde):
             ) from e
 
 
+class FuncxRedisFloatSerde(FuncxRedisSerde):
+    def deserialize(self, value: str) -> float:
+        try:
+            return float(value)
+        except ValueError as e:
+            raise ValueError(
+                f"Invalid float value when loading from Redis: {value}"
+            ) from e
+
+
 class FuncxRedisJSONSerde(FuncxRedisSerde):
     def serialize(self, value: t.Any) -> str:
         return json.dumps(value)
@@ -49,4 +59,5 @@ class FuncxRedisEnumSerde(FuncxRedisSerde):
 
 DEFAULT_SERDE = FuncxRedisSerde()
 INT_SERDE = FuncxRedisIntSerde()
+FLOAT_SERDE = FuncxRedisFloatSerde()
 JSON_SERDE = FuncxRedisJSONSerde()

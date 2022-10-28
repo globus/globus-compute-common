@@ -3,9 +3,11 @@ from .fields import HasRedisFields, HasRedisFieldsMeta, RedisField
 from .pubsub import FuncxRedisPubSub
 from .serde import (
     DEFAULT_SERDE,
+    FLOAT_SERDE,
     INT_SERDE,
     JSON_SERDE,
     FuncxRedisEnumSerde,
+    FuncxRedisFloatSerde,
     FuncxRedisIntSerde,
     FuncxRedisJSONSerde,
     FuncxRedisSerde,
@@ -21,9 +23,11 @@ __all__ = (
     "RedisField",
     "FuncxRedisSerde",
     "FuncxRedisIntSerde",
+    "FuncxRedisFloatSerde",
     "FuncxRedisJSONSerde",
     "DEFAULT_SERDE",
     "INT_SERDE",
+    "FLOAT_SERDE",
     "JSON_SERDE",
     "FuncxRedisEnumSerde",
     "FuncxRedisPubSub",
