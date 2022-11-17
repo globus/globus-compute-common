@@ -32,6 +32,8 @@ class ResponseErrorCode(IntEnum):
     INSUFFICIENT_AUTH_SCOPE = 24
     RESOURCE_LOCKED = 25
     RESOURCE_CONFLICT = 26
+    BATCH_RUN_TOO_LARGE = 27
+    TASK_PAYLOAD_TOO_LARGE = 28
 
 
 # a collection of the HTTP status error codes that the service would make use of
@@ -43,6 +45,7 @@ class HTTPStatusCode(IntEnum):
     NOT_FOUND = 404
     REQUEST_TIMEOUT = 408
     RESOURCE_CONFLICT = 409
+    PAYLOAD_TOO_LARGE = 413
     RESOURCE_LOCKED = 423
     TOO_MANY_REQUESTS = 429
     INTERNAL_SERVER_ERROR = 500

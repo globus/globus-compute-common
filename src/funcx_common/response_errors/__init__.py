@@ -2,6 +2,7 @@ from .constants import HTTPStatusCode, ResponseErrorCode
 from .error_base import FuncxResponseError
 from .error_classes import (
     AuthGroupNotFound,
+    BatchRunTooLarge,
     ContainerNotFound,
     EndpointAccessForbidden,
     EndpointAlreadyRegistered,
@@ -25,6 +26,7 @@ from .error_classes import (
     TaskGroupAccessForbidden,
     TaskGroupNotFound,
     TaskNotFound,
+    TaskPayloadTooLarge,
     UserNotFound,
     UserUnauthenticated,
 )
@@ -59,4 +61,6 @@ __all__ = (
     "TaskNotFound",
     "UserNotFound",
     "UserUnauthenticated",
+    "BatchRunTooLarge",
+    "TaskPayloadTooLarge",
 )
