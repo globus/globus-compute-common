@@ -356,3 +356,39 @@ class InsufficientAuthScope(FuncxResponseError):
     def __init__(self) -> None:
         self.error_args = []
         self.reason = "Insufficient scope for this action"
+
+
+class BatchRunTooLarge(FuncxResponseError):
+    """Raised when the size of the POST body sent to the batch_run API
+    exceeds our limits."""
+
+    code = ResponseErrorCode.BATCH_RUN_TOO_LARGE
+    http_status_code = HTTPStatusCode.PAYLOAD_TOO_LARGE
+
+    def __init__(self, payload_size: int, max_size: int):
+        self.error_args = [payload_size, max_size]
+        self.reason = (
+            "Batch submission is too large: "
+            + f"{payload_size} bytes > {max_size} bytes"
+        )
+
+
+class TaskPayloadTooLarge(FuncxResponseError):
+    """Raised when the payload of a task sent to the batch_run API
+    exceeds our limits."""
+
+    code = ResponseErrorCode.TASK_PAYLOAD_TOO_LARGE
+    http_status_code = HTTPStatusCode.PAYLOAD_TOO_LARGE
+
+    def __init__(
+        self,
+        task_group_id: str,
+        task_id: str,
+        payload_size: int,
+        max_size: int,
+    ):
+        self.error_args = [task_group_id, task_id, payload_size, max_size]
+        self.reason = (
+            f"Payload for task {task_id} in task group {task_group_id} is "
+            + f"too large: {payload_size} bytes > {max_size} bytes"
+        )
