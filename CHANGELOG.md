@@ -2,6 +2,13 @@
 
 <!-- scriv-insert-here -->
 
+<a id='changelog-0.0.20'></a>
+## 0.0.20 (2022-11-18)
+
+### Added
+
+- Added error codes and classes for when submissions to the web service's `batch_run` API are too large
+
 <a id='changelog-0.0.17'></a>
 ## 0.0.17 (2022-10-19)
 
