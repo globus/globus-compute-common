@@ -3,6 +3,7 @@ from .error_base import FuncxResponseError
 from .error_classes import (
     AuthGroupNotFound,
     BatchRunTooLarge,
+    ContainerBuildForbidden,
     ContainerNotFound,
     EndpointAccessForbidden,
     EndpointAlreadyRegistered,
@@ -37,6 +38,7 @@ __all__ = (
     "FuncxResponseError",
     "AuthGroupNotFound",
     "ContainerNotFound",
+    "ContainerBuildForbidden",
     "EndpointAccessForbidden",
     "EndpointAlreadyRegistered",
     "EndpointInUseError",
