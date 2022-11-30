@@ -395,11 +395,21 @@ class TaskPayloadTooLarge(FuncxResponseError):
         self,
         task_group_id: str,
         task_id: str,
-        payload_size: int,
         max_size: int,
+        function_code_size: int,
+        arguments_size: int,
     ):
-        self.error_args = [task_group_id, task_id, payload_size, max_size]
+        self.error_args = [
+            task_group_id,
+            task_id,
+            max_size,
+            function_code_size,
+            arguments_size,
+        ]
+        payload_size = function_code_size + arguments_size
         self.reason = (
             f"Payload for task {task_id} in task group {task_group_id} is "
-            + f"too large: {payload_size} bytes > {max_size} bytes"
+            + f"too large: {payload_size} bytes > {max_size} bytes "
+            + f"({function_code_size} bytes due to serialized function code, "
+            + f"{arguments_size} bytes due to arguments)"
         )
