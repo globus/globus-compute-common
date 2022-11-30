@@ -151,6 +151,17 @@ class FunctionNotPermitted(FuncxResponseError):
         self.endpoint_uuid = endpoint_uuid
 
 
+class ContainerBuildForbidden(FuncxResponseError):
+    """User not entitled to use container service"""
+
+    code = ResponseErrorCode.CONTAINER_SERVICE_NOT_PERMITTED
+    http_status_code = HTTPStatusCode.FORBIDDEN
+
+    def __init__(self) -> None:
+        self.reason = "Unauthorized container service access"
+        self.error_args = [""]
+
+
 class EndpointAlreadyRegistered(FuncxResponseError):
     """Endpoint with specified uuid already registered by a different user"""
 
