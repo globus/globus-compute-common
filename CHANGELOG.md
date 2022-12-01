@@ -2,6 +2,13 @@
 
 <!-- scriv-insert-here -->
 
+<a id='changelog-0.0.21'></a>
+## 0.0.21 (2022-12-02)
+
+### Added
+
+- Add new exception, `ContainerBuildForbidden`
+
 <a id='changelog-0.0.20'></a>
 ## 0.0.20 (2022-11-18)
 
