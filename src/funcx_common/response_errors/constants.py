@@ -35,6 +35,7 @@ class ResponseErrorCode(IntEnum):
     BATCH_RUN_TOO_LARGE = 27
     TASK_PAYLOAD_TOO_LARGE = 28
     CONTAINER_SERVICE_NOT_PERMITTED = 29
+    FUNCTION_TOO_LARGE = 30
 
 
 # a collection of the HTTP status error codes that the service would make use of

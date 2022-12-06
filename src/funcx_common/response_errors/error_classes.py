@@ -413,3 +413,18 @@ class TaskPayloadTooLarge(FuncxResponseError):
             + f"({function_code_size} bytes due to serialized function code, "
             + f"{arguments_size} bytes due to arguments)"
         )
+
+
+class FunctionTooLarge(FuncxResponseError):
+    """Raised when the size of a serialized function sent to the API
+    exceeds our limits."""
+
+    code = ResponseErrorCode.FUNCTION_TOO_LARGE
+    http_status_code = HTTPStatusCode.PAYLOAD_TOO_LARGE
+
+    def __init__(self, function_size: int, max_size: int) -> None:
+        self.error_args = [function_size, max_size]
+        self.reason = (
+            f"The submitted function is {function_size} bytes, "
+            f"which exceeds the maximum limit of {max_size} bytes"
+        )
