@@ -2,6 +2,13 @@
 
 <!-- scriv-insert-here -->
 
+<a id='changelog-0.0.23'></a>
+## 0.0.23 (2022-12-06)
+
+### Added
+
+- Add an exception and error code for when a serialized function exceeds our size limits.
+
 <a id='changelog-0.0.21'></a>
 ## 0.0.21 (2022-12-02)
 
