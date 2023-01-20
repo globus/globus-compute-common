@@ -13,6 +13,7 @@ from funcx_common.messagepack import (
     unpack,
 )
 from funcx_common.messagepack.message_types import (
+    Container,
     EPStatusReport,
     ManagerStatusReport,
     Result,
@@ -99,10 +100,19 @@ def crudely_pack_data(data):
             None,
         ),
         (
+            Container,
+            {"container_id": uuid.uuid4(), "name": "some container name", "images": []},
+            None,
+        ),
+        (
             Task,
             {
                 "task_id": uuid.UUID("058cf505-a09e-4af3-a5f2-eb2e931af141"),
-                "container_id": uuid.UUID("f72b4570-8273-4913-a6a0-d77af864beb1"),
+                "container": Container(
+                    container_id=uuid.UUID("f72b4570-8273-4913-a6a0-d77af864beb1"),
+                    name="Some Container",
+                    images=[],
+                ),
                 "task_buffer": "foo data",
             },
             None,
@@ -111,7 +121,7 @@ def crudely_pack_data(data):
             Task,
             {
                 "task_id": uuid.UUID("058cf505-a09e-4af3-a5f2-eb2e931af141"),
-                "container_id": None,
+                "container": None,
                 "task_buffer": "foo data",
             },
             None,
