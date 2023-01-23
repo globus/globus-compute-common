@@ -2,6 +2,13 @@
 
 <!-- scriv-insert-here -->
 
+<a id='changelog-0.0.24'></a>
+## 0.0.24 (2023-01-23)
+
+### Changed
+
+- Container information can now be conveyed directly with Task messages, not just ``container_id``
+
 <a id='changelog-0.0.23'></a>
 ## 0.0.23 (2022-12-06)
 
