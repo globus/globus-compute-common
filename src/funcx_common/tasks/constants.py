@@ -14,6 +14,11 @@ class TaskState(str, enum.Enum):
     FAILED = "failed"
     RESULT_RECEIVED = "result-received"
     RESULT_ENQUEUED = "result-enqueued"
+    AP_RECEIVED = "action-provider-received"
+    AP_TASK_SUBMITTED = "action-provider-task-submitted"
+    AP_TASKGROUP_RUNNING = "action-provider-task-group-in-progress"
+    AP_TASKGROUP_COMPLETED = "action-provider-task-group-completed"
+    AP_TASKGROUP_ERROR = "action-provider-task-group-error"
 
 
 class InternalTaskState(str, enum.Enum):
@@ -28,3 +33,4 @@ class ActorName(str, enum.Enum):
     ENDPOINT = "endpoint"
     RESULT_PROCESSOR = "result-processor"
     WEB_SERVICE = "web-service"
+    ACTION_PROVIDER = "action-provider"
