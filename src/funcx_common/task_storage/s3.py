@@ -52,7 +52,6 @@ class RedisS3Storage(TaskStorage):
     def _store_to_s3(
         self, task: TaskProtocol, storage_field_name: StorageFieldName, result: str
     ) -> None:
-
         key = f"{task.task_id}.{storage_field_name.reference_attr}"
         try:
             self.client.put_object(
@@ -76,7 +75,6 @@ class RedisS3Storage(TaskStorage):
     def _get_from_s3(
         self, task: TaskProtocol, storage_field_name: StorageFieldName
     ) -> str:
-
         reference = getattr(task, storage_field_name.reference_attr)
         if reference is None:  # pragma: no cover
             raise StorageException(
