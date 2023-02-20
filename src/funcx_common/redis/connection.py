@@ -30,7 +30,7 @@ Either install it explicitly or install the 'redis' extra, as in
 
 def default_redis_connection_factory(
     redis_url: t.Optional[str] = None,
-) -> "redis.Redis[t.Any]":
+) -> "redis.Redis[str]":
     """
     Construct a Redis client for a given redis URL.
     If no URL is given, the FUNCX_COMMON_REDIS_URL environment variable will be used.
@@ -47,7 +47,7 @@ def default_redis_connection_factory(
         redis_url = os.getenv("FUNCX_COMMON_REDIS_URL", "redis://localhost:6379")
 
     return redis.Redis.from_url(
-        t.cast(str, redis_url),
+        redis_url,
         decode_responses=True,
         health_check_interval=30,
     )
