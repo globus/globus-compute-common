@@ -39,21 +39,21 @@ def crudely_pack_data(data):
             EPStatusReport,
             {
                 "endpoint_id": uuid.UUID("058cf505-a09e-4af3-a5f2-eb2e931af141"),
-                "ep_status_report": {},
+                "global_state": {},
                 "task_statuses": {},
             },
             None,
         ),
         (
             EPStatusReport,
-            {"endpoint_id": ID_ZERO, "ep_status_report": {}, "task_statuses": {}},
+            {"endpoint_id": ID_ZERO, "global_state": {}, "task_statuses": {}},
             None,
         ),
         (
             EPStatusReport,
             {
                 "endpoint_id": ID_ZERO,
-                "ep_status_report": {
+                "global_state": {
                     str(ID_ZERO): [
                         TaskTransition(
                             timestamp=1,
@@ -70,7 +70,7 @@ def crudely_pack_data(data):
             EPStatusReport,
             {
                 "endpoint_id": ID_ZERO,
-                "ep_status_report": {},
+                "global_state": {},
                 "task_statuses": {
                     str(ID_ZERO): [
                         TaskTransition(
@@ -82,6 +82,11 @@ def crudely_pack_data(data):
                 },
             },
             None,
+        ),
+        (  # ep_status_report is an alias for global_state
+            EPStatusReport,
+            {"endpoint_id": ID_ZERO, "ep_status_report": {}, "task_statuses": {}},
+            {"endpoint_id": ID_ZERO, "global_state": {}, "task_statuses": {}},
         ),
         (ManagerStatusReport, {"task_statuses": {}}, None),
         (
@@ -244,9 +249,12 @@ def _required_arg_test_ids(param):
 @pytest.mark.parametrize(
     "message_class, init_args",
     [
-        # EPStatusReport requires: endpoint_id, ep_status_report, task_statuses
+        # EPStatusReport requires:
+        #   endpoint_id, global_state OR ep_status_report, task_statuses
+        (EPStatusReport, {"global_state": {}, "task_statuses": {}}),
         (EPStatusReport, {"ep_status_report": {}, "task_statuses": {}}),
         (EPStatusReport, {"endpoint_id": ID_ZERO, "task_statuses": {}}),
+        (EPStatusReport, {"endpoint_id": ID_ZERO, "global_state": {}}),
         (EPStatusReport, {"endpoint_id": ID_ZERO, "ep_status_report": {}}),
         # ManagerStatusReport requires: task_statuses
         (ManagerStatusReport, {}),
