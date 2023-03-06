@@ -2,6 +2,16 @@
 
 <!-- scriv-insert-here -->
 
+<a id='changelog-0.0.25'></a>
+## 0.0.25 (2023-03-06)
+
+### Changed
+
+- Renamed the ``ep_status_report`` field of the ``EPStatusReport`` message to
+  ``global_state``
+
+  - ``global_state`` has an alias of ``ep_status_report`` for backward compatibility
+
 <a id='changelog-0.0.24'></a>
 ## 0.0.24 (2023-01-23)
 
