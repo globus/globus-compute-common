@@ -4,7 +4,7 @@ parallel = True
 [report]
 show_missing = True
 
-omit = src/funcx_common/funcx_flake8.py
+omit = src/globus_compute_common/globus_compute_flake8.py
 
 exclude_lines =
     # the pragma to disable coverage

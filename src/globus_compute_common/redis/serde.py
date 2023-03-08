@@ -3,7 +3,7 @@ import json
 import typing as t
 
 
-class FuncxRedisSerde:
+class ComputeRedisSerde:
     """
     A Serializer/Deserializer for data going into or out of Redis.
 
@@ -18,7 +18,7 @@ class FuncxRedisSerde:
         return value
 
 
-class FuncxRedisIntSerde(FuncxRedisSerde):
+class ComputeRedisIntSerde(ComputeRedisSerde):
     def deserialize(self, value: str) -> int:
         try:
             return int(value)
@@ -28,7 +28,7 @@ class FuncxRedisIntSerde(FuncxRedisSerde):
             ) from e
 
 
-class FuncxRedisFloatSerde(FuncxRedisSerde):
+class ComputeRedisFloatSerde(ComputeRedisSerde):
     def deserialize(self, value: str) -> float:
         try:
             return float(value)
@@ -38,7 +38,7 @@ class FuncxRedisFloatSerde(FuncxRedisSerde):
             ) from e
 
 
-class FuncxRedisJSONSerde(FuncxRedisSerde):
+class ComputeRedisJSONSerde(ComputeRedisSerde):
     def serialize(self, value: t.Any) -> str:
         return json.dumps(value)
 
@@ -46,7 +46,7 @@ class FuncxRedisJSONSerde(FuncxRedisSerde):
         return json.loads(value)
 
 
-class FuncxRedisEnumSerde(FuncxRedisSerde):
+class ComputeRedisEnumSerde(ComputeRedisSerde):
     def __init__(self, enum_class: t.Type[enum.Enum]) -> None:
         self.enum_class = enum_class
 
@@ -57,7 +57,7 @@ class FuncxRedisEnumSerde(FuncxRedisSerde):
         return self.enum_class(value)
 
 
-DEFAULT_SERDE = FuncxRedisSerde()
-INT_SERDE = FuncxRedisIntSerde()
-FLOAT_SERDE = FuncxRedisFloatSerde()
-JSON_SERDE = FuncxRedisJSONSerde()
+DEFAULT_SERDE = ComputeRedisSerde()
+INT_SERDE = ComputeRedisIntSerde()
+FLOAT_SERDE = ComputeRedisFloatSerde()
+JSON_SERDE = ComputeRedisJSONSerde()

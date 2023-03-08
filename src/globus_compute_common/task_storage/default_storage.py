@@ -9,19 +9,19 @@ DEFAULT_REDIS_STORAGE_THRESHOLD: int = 20000
 
 
 def _get_redis_storage_threshold() -> int:
-    val = os.getenv("FUNCX_REDIS_STORAGE_THRESHOLD")
+    val = os.getenv("COMPUTE_REDIS_STORAGE_THRESHOLD")
     if val is not None:
         try:
             return int(val)
         except ValueError as err:
             raise ValueError(
-                f"could not parse FUNCX_REDIS_STORAGE_THRESHOLD={val} as int"
+                f"could not parse COMPUTE_REDIS_STORAGE_THRESHOLD={val} as int"
             ) from err
     return DEFAULT_REDIS_STORAGE_THRESHOLD
 
 
 def _s3_bucket_name() -> t.Optional[str]:
-    return os.getenv("FUNCX_S3_BUCKET_NAME")
+    return os.getenv("COMPUTE_S3_BUCKET_NAME")
 
 
 def get_default_task_storage() -> TaskStorage:

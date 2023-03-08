@@ -3,13 +3,13 @@ import uuid
 
 import pytest
 
-from funcx_common.redis import (
-    FuncxEndpointTaskQueue,
-    FuncxRedisPubSub,
+from globus_compute_common.redis import (
+    ComputeEndpointTaskQueue,
+    ComputeRedisPubSub,
     default_redis_connection_factory,
     redis_connection_error_logging,
 )
-from funcx_common.tasks import TaskProtocol, TaskState
+from globus_compute_common.tasks import TaskProtocol, TaskState
 
 try:
     import redis
@@ -28,14 +28,14 @@ def test_cannot_create_connection_without_redis_lib():
 
 @pytest.mark.skipif(not has_redis, reason="test requires redis lib")
 def test_pubsub_repr():
-    pubsub = FuncxRedisPubSub()
+    pubsub = ComputeRedisPubSub()
 
     pubsub_str = repr(pubsub)
-    assert pubsub_str.startswith("FuncxRedisPubSub")
+    assert pubsub_str.startswith("ComputeRedisPubSub")
     assert "host=localhost" in pubsub_str
     assert "port=6379" in pubsub_str
 
-    q_obj = FuncxEndpointTaskQueue("endpoint1")
+    q_obj = ComputeEndpointTaskQueue("endpoint1")
     assert "endpoint=endpoint1" in repr(q_obj)
 
 
@@ -54,7 +54,7 @@ def test_connection_error_on_enqueue(monkeypatch):
 
     mytask = SimpleInMemoryTask()
     endpoint = str(uuid.uuid1())
-    task_queue = FuncxEndpointTaskQueue(endpoint)
+    task_queue = ComputeEndpointTaskQueue(endpoint)
 
     # ensure that the error logging wrapper still allows the ConnectionError to
     # propagate
@@ -70,7 +70,7 @@ def test_connection_error_logging(monkeypatch, caplog):
     monkeypatch.setattr(redis.Redis, "rpush", mock_redis_method)
     conn = default_redis_connection_factory()
 
-    caplog.set_level(logging.ERROR, logger="funcx_common")
+    caplog.set_level(logging.ERROR, logger="globus_compute_common")
 
     with pytest.raises(redis.exceptions.ConnectionError):
         with redis_connection_error_logging(conn):

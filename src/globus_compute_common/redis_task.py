@@ -4,7 +4,7 @@ import typing as t
 from .redis import (
     INT_SERDE,
     JSON_SERDE,
-    FuncxRedisEnumSerde,
+    ComputeRedisEnumSerde,
     HasRedisFieldsMeta,
     RedisField,
 )
@@ -63,9 +63,9 @@ class RedisTask(TaskProtocol, metaclass=HasRedisFieldsMeta):
 
     # required fields
     # TODO: when `required=True` is supported in `RedisField`, set it for all of these
-    status = t.cast(TaskState, RedisField(serde=FuncxRedisEnumSerde(TaskState)))
+    status = t.cast(TaskState, RedisField(serde=ComputeRedisEnumSerde(TaskState)))
     internal_status = t.cast(
-        InternalTaskState, RedisField(serde=FuncxRedisEnumSerde(InternalTaskState))
+        InternalTaskState, RedisField(serde=ComputeRedisEnumSerde(InternalTaskState))
     )
     user_id = t.cast(int, RedisField(serde=INT_SERDE))
     function_id = t.cast(str, RedisField())

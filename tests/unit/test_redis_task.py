@@ -3,9 +3,9 @@ import uuid
 
 import pytest
 
-from funcx_common.redis_task import RedisTask
-from funcx_common.tasks import InternalTaskState, TaskState
-from funcx_common.testing import LOCAL_REDIS_REACHABLE
+from globus_compute_common.redis_task import RedisTask
+from globus_compute_common.tasks import InternalTaskState, TaskState
+from globus_compute_common.testing import LOCAL_REDIS_REACHABLE
 
 try:
     import redis

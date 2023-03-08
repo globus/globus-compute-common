@@ -1,7 +1,7 @@
 import uuid
 
-from funcx_common.task_storage import ImplicitRedisStorage
-from funcx_common.tasks import TaskProtocol, TaskState
+from globus_compute_common.task_storage import ImplicitRedisStorage
+from globus_compute_common.tasks import TaskProtocol, TaskState
 
 
 class SimpleInMemoryTask(TaskProtocol):

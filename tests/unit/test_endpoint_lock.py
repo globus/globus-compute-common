@@ -8,8 +8,8 @@ try:
 except ImportError:
     pytest.skip(allow_module_level=True)
 
-from funcx_common.redis_endpoint_lock import RedisEndpointLock
-from funcx_common.testing import LOCAL_REDIS_REACHABLE
+from globus_compute_common.redis_endpoint_lock import RedisEndpointLock
+from globus_compute_common.testing import LOCAL_REDIS_REACHABLE
 
 if not LOCAL_REDIS_REACHABLE:
     pytest.skip(

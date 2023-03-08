@@ -1,6 +1,6 @@
 # type: ignore
 """
-A Flake8 Plugin for use in FuncX
+A Flake8 Plugin for use in Globus Compute
 
 Catches log calls which do eager string formatting and imports of the `typing`
 module which don't match our preferred form.
@@ -21,7 +21,7 @@ LOG_METHODS = {"debug", "info", "warn", "warning", "error", "critical", "excepti
 
 
 class Plugin:
-    name = "funcx-flake8"
+    name = "globus-compute-flake8"
     version = "0.1.0"
 
     # args to init determine plugin behavior. see:

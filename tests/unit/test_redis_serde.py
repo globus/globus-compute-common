@@ -1,7 +1,12 @@
 import pytest
 
-from funcx_common.redis import DEFAULT_SERDE, INT_SERDE, JSON_SERDE, FuncxRedisEnumSerde
-from funcx_common.tasks import TaskState
+from globus_compute_common.redis import (
+    DEFAULT_SERDE,
+    INT_SERDE,
+    JSON_SERDE,
+    ComputeRedisEnumSerde,
+)
+from globus_compute_common.tasks import TaskState
 
 
 def test_basic_serde():
@@ -31,6 +36,6 @@ def test_json_serde():
 
 
 def test_enum_serde():
-    serde = FuncxRedisEnumSerde(TaskState)
+    serde = ComputeRedisEnumSerde(TaskState)
     assert serde.serialize(TaskState.RUNNING) == "running"
     assert serde.deserialize(serde.serialize(TaskState.RUNNING)) is TaskState.RUNNING

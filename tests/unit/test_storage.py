@@ -2,13 +2,13 @@ import uuid
 
 import pytest
 
-from funcx_common.task_storage import (
+from globus_compute_common.task_storage import (
     ImplicitRedisStorage,
     RedisS3Storage,
     StorageException,
     get_default_task_storage,
 )
-from funcx_common.tasks import TaskProtocol, TaskState
+from globus_compute_common.tasks import TaskProtocol, TaskState
 
 try:
     import boto3
@@ -34,42 +34,42 @@ class SimpleInMemoryTask(TaskProtocol):
 def test_bucket_mock():
     with mock_s3():
         res = boto3.client("s3")
-        res.create_bucket(Bucket="funcx-test-1")
+        res.create_bucket(Bucket="compute-test-1")
         yield
 
 
 @pytest.mark.skipif(not has_boto, reason="test requires boto3 lib")
-def test_default_task_storage_s3(funcx_s3_bucket, monkeypatch):
-    monkeypatch.setenv("FUNCX_S3_BUCKET_NAME", funcx_s3_bucket)
-    monkeypatch.delenv("FUNCX_REDIS_STORAGE_THRESHOLD", raising=False)
+def test_default_task_storage_s3(compute_s3_bucket, monkeypatch):
+    monkeypatch.setenv("COMPUTE_S3_BUCKET_NAME", compute_s3_bucket)
+    monkeypatch.delenv("COMPUTE_REDIS_STORAGE_THRESHOLD", raising=False)
 
     store = get_default_task_storage()
     assert isinstance(store, RedisS3Storage)
     assert store.redis_threshold == 20000  # default value
 
     # now set a threshold and confirm it gets picked up
-    monkeypatch.setenv("FUNCX_REDIS_STORAGE_THRESHOLD", "100")
+    monkeypatch.setenv("COMPUTE_REDIS_STORAGE_THRESHOLD", "100")
     store = get_default_task_storage()
     assert isinstance(store, RedisS3Storage)
     assert store.redis_threshold == 100
 
     # now set an invalid threshold value; confirm that it is ignored
-    monkeypatch.setenv("FUNCX_REDIS_STORAGE_THRESHOLD", "foo")
+    monkeypatch.setenv("COMPUTE_REDIS_STORAGE_THRESHOLD", "foo")
     with pytest.raises(ValueError):
         store = get_default_task_storage()
 
 
 def test_default_task_storage_redis(monkeypatch):
     # no env vars set -> ImplicitRedisStorage
-    monkeypatch.delenv("FUNCX_S3_BUCKET_NAME", raising=False)
-    monkeypatch.delenv("FUNCX_REDIS_STORAGE_THRESHOLD", raising=False)
+    monkeypatch.delenv("COMPUTE_S3_BUCKET_NAME", raising=False)
+    monkeypatch.delenv("COMPUTE_REDIS_STORAGE_THRESHOLD", raising=False)
 
     store = get_default_task_storage()
     assert isinstance(store, ImplicitRedisStorage)
 
     # confirm that setting a threshold does not change behavior
     # (because bucket is not set)
-    monkeypatch.setenv("FUNCX_REDIS_STORAGE_THRESHOLD", "100")
+    monkeypatch.setenv("COMPUTE_REDIS_STORAGE_THRESHOLD", "100")
     store = get_default_task_storage()
     assert isinstance(store, ImplicitRedisStorage)
 
@@ -77,19 +77,19 @@ def test_default_task_storage_redis(monkeypatch):
 # this test technically doesn't need to have boto3 installed, but requiring it ensures
 # that in the failure case, we will get clearer messages
 @pytest.mark.skipif(not has_boto, reason="test requires boto3 lib")
-def test_default_task_storage_redis_from_threshold(funcx_s3_bucket, monkeypatch):
+def test_default_task_storage_redis_from_threshold(compute_s3_bucket, monkeypatch):
     # bucket=... but threshold=-1 -> ImplicitRedisStorage
-    monkeypatch.setenv("FUNCX_S3_BUCKET_NAME", funcx_s3_bucket)
-    monkeypatch.setenv("FUNCX_REDIS_STORAGE_THRESHOLD", "-1")
+    monkeypatch.setenv("COMPUTE_S3_BUCKET_NAME", compute_s3_bucket)
+    monkeypatch.setenv("COMPUTE_REDIS_STORAGE_THRESHOLD", "-1")
 
     store = get_default_task_storage()
     assert isinstance(store, ImplicitRedisStorage)
 
 
 @pytest.mark.skipif(not has_boto, reason="test requires boto3 lib")
-def test_storage_simple(funcx_s3_bucket):
+def test_storage_simple(compute_s3_bucket):
     # We are setting threshold of 1000 to force storage into redis
-    store = RedisS3Storage(bucket_name=funcx_s3_bucket, redis_threshold=1000)
+    store = RedisS3Storage(bucket_name=compute_s3_bucket, redis_threshold=1000)
     result = "Hello World!"
     task = SimpleInMemoryTask()
 
@@ -101,8 +101,8 @@ def test_storage_simple(funcx_s3_bucket):
 
 
 @pytest.mark.skipif(not has_boto, reason="test requires boto3 lib")
-def test_backward_compat(funcx_s3_bucket):
-    store = RedisS3Storage(bucket_name=funcx_s3_bucket, redis_threshold=1000)
+def test_backward_compat(compute_s3_bucket):
+    store = RedisS3Storage(bucket_name=compute_s3_bucket, redis_threshold=1000)
     result = "Hello World!"
     task = SimpleInMemoryTask()
     task.result = result
@@ -111,8 +111,8 @@ def test_backward_compat(funcx_s3_bucket):
 
 
 @pytest.mark.xfail(reason="This will fail until we remove backward compat support")
-def test_bad_reference(funcx_s3_bucket):
-    store = RedisS3Storage(bucket_name=funcx_s3_bucket, redis_threshold=1000)
+def test_bad_reference(compute_s3_bucket):
+    store = RedisS3Storage(bucket_name=compute_s3_bucket, redis_threshold=1000)
     result = "Hello World!"
     task = SimpleInMemoryTask()
     task.result = result
@@ -124,27 +124,27 @@ def test_bad_reference(funcx_s3_bucket):
 
 
 @pytest.mark.skipif(not has_boto, reason="test requires boto3 lib")
-def test_no_result(funcx_s3_bucket):
+def test_no_result(compute_s3_bucket):
     """Confirm get_result returns None when there's no result"""
     # We are setting threshold of 0 to force only s3 storage
-    store = RedisS3Storage(bucket_name=funcx_s3_bucket, redis_threshold=0)
+    store = RedisS3Storage(bucket_name=compute_s3_bucket, redis_threshold=0)
     task = SimpleInMemoryTask()
 
     assert store.get_result(task) is None
 
 
 @pytest.mark.skipif(has_boto, reason="test only runs without boto3 lib")
-def test_cannot_create_storage_without_boto3_lib(funcx_s3_bucket):
+def test_cannot_create_storage_without_boto3_lib(compute_s3_bucket):
     with pytest.raises(RuntimeError):
         # can't create a storage
-        RedisS3Storage(bucket_name=funcx_s3_bucket, redis_threshold=0)
+        RedisS3Storage(bucket_name=compute_s3_bucket, redis_threshold=0)
 
 
 @pytest.mark.skipif(not has_boto, reason="test requires boto3 lib")
 def test_s3_storage_simple_payload(test_bucket_mock):
     """Confirm that payload data is stored to s3(mock)"""
     # We are setting threshold of 0 to force only s3 storage
-    store = RedisS3Storage(bucket_name="funcx-test-1", redis_threshold=0)
+    store = RedisS3Storage(bucket_name="compute-test-1", redis_threshold=0)
     payload = "Hello World!"
     task = SimpleInMemoryTask()
 
@@ -158,7 +158,7 @@ def test_s3_storage_simple_payload(test_bucket_mock):
 def test_s3_storage_simple(test_bucket_mock):
     """Confirm that data is stored to s3(mock)"""
     # We are setting threshold of 0 to force only s3 storage
-    store = RedisS3Storage(bucket_name="funcx-test-1", redis_threshold=0)
+    store = RedisS3Storage(bucket_name="compute-test-1", redis_threshold=0)
     result = "Hello World!"
     task = SimpleInMemoryTask()
 
@@ -172,7 +172,7 @@ def test_s3_storage_simple(test_bucket_mock):
 def test_differentiator(test_bucket_mock):
     """Confirm that the threshold works to pick the right storage target"""
     # We are setting threshold of 0 to force only s3 storage
-    store = RedisS3Storage(bucket_name="funcx-test-1", redis_threshold=5)
+    store = RedisS3Storage(bucket_name="compute-test-1", redis_threshold=5)
 
     result1 = "Hi"
     result2 = "Hello World!"
@@ -202,7 +202,7 @@ def test_differentiator(test_bucket_mock):
     ],
 )
 def test_s3_task_with_invalid_reference(test_bucket_mock, storage_attrs):
-    store = RedisS3Storage(bucket_name="funcx-test-1", redis_threshold=0)
+    store = RedisS3Storage(bucket_name="compute-test-1", redis_threshold=0)
 
     payload = "Hello Payload"
     result = "Hello World!"
@@ -232,7 +232,7 @@ def test_s3_task_with_invalid_reference(test_bucket_mock, storage_attrs):
 
 @pytest.mark.skipif(not has_boto, reason="test requires boto3 lib")
 def test_task_with_unknown_storage(test_bucket_mock):
-    store = RedisS3Storage(bucket_name="funcx-test-1", redis_threshold=0)
+    store = RedisS3Storage(bucket_name="compute-test-1", redis_threshold=0)
 
     result = "Hello World!"
     task = SimpleInMemoryTask()
@@ -254,7 +254,7 @@ def test_differentiator_payload(test_bucket_mock):
     """Confirm that the threshold works to pick the right storage target
     for payloads"""
     # We are setting threshold of 0 to force only s3 storage
-    store = RedisS3Storage(bucket_name="funcx-test-1", redis_threshold=5)
+    store = RedisS3Storage(bucket_name="compute-test-1", redis_threshold=5)
 
     payload1 = "Hi"
     payload2 = "Hello World!"
@@ -276,7 +276,7 @@ def test_differentiator_payload(test_bucket_mock):
 def test_internal(test_bucket_mock):
     """Test internal methods"""
     # We are setting threshold of 0 to force only s3 storage
-    store = RedisS3Storage(bucket_name="funcx-test-1", redis_threshold=5)
+    store = RedisS3Storage(bucket_name="compute-test-1", redis_threshold=5)
 
     payload1 = "Hi"
     result1 = "Hi"
@@ -284,7 +284,7 @@ def test_internal(test_bucket_mock):
     result2 = "Hello World!"
     task1 = SimpleInMemoryTask()
     task2 = SimpleInMemoryTask()
-    from funcx_common.task_storage.s3 import StorageFieldName
+    from globus_compute_common.task_storage.s3 import StorageFieldName
 
     store._store_to_s3(task1, StorageFieldName.payload, payload1)
     store._store_to_s3(task1, StorageFieldName.result, result1)
@@ -299,7 +299,7 @@ def test_internal(test_bucket_mock):
 
 @pytest.mark.skipif(not has_boto, reason="test requires boto3 lib")
 def test_task_with_unknown_storage_for_payload(test_bucket_mock):
-    store = RedisS3Storage(bucket_name="funcx-test-1", redis_threshold=0)
+    store = RedisS3Storage(bucket_name="compute-test-1", redis_threshold=0)
 
     result = "Hello World!"
     task = SimpleInMemoryTask()

@@ -3,7 +3,7 @@ import pytest
 
 def pytest_addoption(parser):
     parser.addoption(
-        "--funcx-s3-bucket",
+        "--compute-s3-bucket",
         default=None,
         nargs=1,
         help="A live S3 bucket which will be used for testing. "
@@ -14,12 +14,12 @@ def pytest_addoption(parser):
 
 
 @pytest.fixture
-def funcx_s3_bucket(pytestconfig, monkeypatch):
-    value = pytestconfig.getoption("--funcx-s3-bucket")
+def compute_s3_bucket(pytestconfig, monkeypatch):
+    value = pytestconfig.getoption("--compute-s3-bucket")
 
     if value is not None:
         value = value[0]
-        monkeypatch.setenv("FUNCX_S3_BUCKET_NAME", value)
+        monkeypatch.setenv("COMPUTE_S3_BUCKET_NAME", value)
         return value
 
     return None
@@ -30,4 +30,4 @@ def _unset_envvar_if_set(monkeypatch):
     # use monkeypatch.delenv to ensure that the env var is not set, preventing
     # test behaviors from changing
     # TODO: allow use of the redis URL env var to control test behavior
-    monkeypatch.delenv("FUNCX_COMMON_REDIS_URL", raising=False)
+    monkeypatch.delenv("COMPUTE_COMMON_REDIS_URL", raising=False)
