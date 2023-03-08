@@ -19,10 +19,10 @@ def _check_has_redis() -> None:
     if not has_redis:
         raise RuntimeError(
             """\
-Cannot import funcx_common.redis if the 'redis' package is not available.
+Cannot import globus_compute_common.redis if the 'redis' package is not available.
 Either install it explicitly or install the 'redis' extra, as in
 
-    pip install 'funcx-common[redis]'
+    pip install 'globus-compute-common[redis]'
 
 """
         )
@@ -33,7 +33,7 @@ def default_redis_connection_factory(
 ) -> "redis.Redis[str]":
     """
     Construct a Redis client for a given redis URL.
-    If no URL is given, the FUNCX_COMMON_REDIS_URL environment variable will be used.
+    If no URL is given, the COMPUTE_COMMON_REDIS_URL environment variable will be used.
 
     If no URL is given and the environment variable is not populated,
 
@@ -44,7 +44,7 @@ def default_redis_connection_factory(
     _check_has_redis()
 
     if redis_url is None:
-        redis_url = os.getenv("FUNCX_COMMON_REDIS_URL", "redis://localhost:6379")
+        redis_url = os.getenv("COMPUTE_COMMON_REDIS_URL", "redis://localhost:6379")
 
     return redis.Redis.from_url(
         redis_url,

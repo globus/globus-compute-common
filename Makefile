@@ -1,4 +1,4 @@
-FUNCX_COMMON_VERSION=$(shell grep '^version =' setup.cfg | cut -d '=' -f2 | tr -d ' ')
+COMPUTE_COMMON_VERSION=$(shell grep '^version =' setup.cfg | cut -d '=' -f2 | tr -d ' ')
 
 .PHONY: lint test
 lint:
@@ -8,13 +8,13 @@ test:
 
 .PHONY: showvars prepare-release release
 showvars:
-	@echo "FUNCX_COMMON_VERSION=$(FUNCX_COMMON_VERSION)"
+	@echo "COMPUTE_COMMON_VERSION=$(COMPUTE_COMMON_VERSION)"
 prepare-release:
-	tox -e prepare-release -- --version "$(FUNCX_COMMON_VERSION)"
+	tox -e prepare-release -- --version "$(COMPUTE_COMMON_VERSION)"
 	$(EDITOR) CHANGELOG.md
 release:
-	git tag -s "$(FUNCX_COMMON_VERSION)" -m "v$(FUNCX_COMMON_VERSION)"
-	-git push $(shell git rev-parse --abbrev-ref @{push} | cut -d '/' -f1) refs/tags/$(FUNCX_COMMON_VERSION)
+	git tag -s "$(COMPUTE_COMMON_VERSION)" -m "v$(COMPUTE_COMMON_VERSION)"
+	-git push $(shell git rev-parse --abbrev-ref @{push} | cut -d '/' -f1) refs/tags/$(COMPUTE_COMMON_VERSION)
 	tox -e publish-release
 
 .PHONY: clean

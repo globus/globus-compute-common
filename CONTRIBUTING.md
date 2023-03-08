@@ -1,4 +1,4 @@
-# Contributing to funcx-common
+# Contributing to globus-compute-common
 
 First off, thank you so much for taking the time to contribute! :+1:
 
@@ -32,7 +32,7 @@ For a good bug report:
 
 ## Linting & Testing
 
-Testing funcx-common requires [tox](https://tox.readthedocs.io/en/latest/).
+Testing globus-compute-common requires [tox](https://tox.readthedocs.io/en/latest/).
 
 Run tests with
 
@@ -47,7 +47,7 @@ And linting with
 For the best development experience, we recommend setting up linting and
 autofixing integrations with your editor and git.
 
-The funcx-common uses [pre-commit](https://pre-commit.com/) to automatically run linters and fixers.
+globus-compute-common uses [pre-commit](https://pre-commit.com/) to automatically run linters and fixers.
 Install `pre-commit` and then run
 
     $ pre-commit install

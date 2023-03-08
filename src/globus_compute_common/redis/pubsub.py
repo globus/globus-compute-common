@@ -29,7 +29,7 @@ def _queue_name(endpoint_id: str) -> str:
     return f"{_TASK_QUEUE_PREFIX}{endpoint_id}"
 
 
-class FuncxRedisPubSub:
+class ComputeRedisPubSub:
     """
     This class provides a layer over the Redis lib's `PubSub` functionality to
     push and pop messages into an endpoint_id-specific queue.
@@ -54,7 +54,7 @@ class FuncxRedisPubSub:
         self.pubsub = self.redis_client.pubsub()
 
     def __repr__(self) -> str:
-        return f"FuncxRedisPubSub(redis_client={self.redis_client})"
+        return f"ComputeRedisPubSub(redis_client={self.redis_client})"
 
     @property
     def subscribed(self) -> bool:
@@ -176,7 +176,7 @@ class FuncxRedisPubSub:
         )
         if self.subscribed and (num_pending_unsub < len(self.pubsub.channels)):
             raise ValueError(
-                "Cannot get final messages on this FuncxRedisPubSub. It has "
+                "Cannot get final messages on this ComputeRedisPubSub. It has "
                 "not been unsubscribed from all of its channels."
             )
 

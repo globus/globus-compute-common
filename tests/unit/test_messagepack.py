@@ -5,14 +5,14 @@ import uuid
 import pydantic
 import pytest
 
-from funcx_common.messagepack import (
+from globus_compute_common.messagepack import (
     MessagePacker,
     UnrecognizedProtocolVersion,
     WrongMessageTypeError,
     pack,
     unpack,
 )
-from funcx_common.messagepack.message_types import (
+from globus_compute_common.messagepack.message_types import (
     Container,
     EPStatusReport,
     ManagerStatusReport,
@@ -22,8 +22,8 @@ from funcx_common.messagepack.message_types import (
     TaskCancel,
     TaskTransition,
 )
-from funcx_common.messagepack.message_types.base import Message, meta
-from funcx_common.tasks.constants import ActorName, TaskState
+from globus_compute_common.messagepack.message_types.base import Message, meta
+from globus_compute_common.tasks.constants import ActorName, TaskState
 
 ID_ZERO = uuid.UUID(int=0)
 
@@ -410,7 +410,7 @@ def test_unknown_data_fields_warn(caplog):
             },
         }
     )
-    with caplog.at_level(logging.WARNING, logger="funcx_common"):
+    with caplog.at_level(logging.WARNING, logger="globus_compute_common"):
         msg = unpack(buf)
         # successfully unpacked
         assert isinstance(msg, Task)
@@ -434,7 +434,7 @@ def test_unknown_envelope_fields_warn(caplog):
             "unexpected_fieldname": "foo",
         }
     )
-    with caplog.at_level(logging.WARNING, logger="funcx_common"):
+    with caplog.at_level(logging.WARNING, logger="globus_compute_common"):
         msg = unpack(buf)
         # successfully unpacked
         assert isinstance(msg, Task)

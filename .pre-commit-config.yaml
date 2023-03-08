@@ -31,5 +31,5 @@ repos:
   rev: v1.0.1
   hooks:
     - id: mypy
-      files: ^src/funcx_common/
+      files: ^src/globus_compute_common/
       additional_dependencies: ['types-redis', 'pydantic']

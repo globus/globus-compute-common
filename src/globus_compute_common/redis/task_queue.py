@@ -8,7 +8,7 @@ if t.TYPE_CHECKING:
     import redis
 
 
-class FuncxEndpointTaskQueue:
+class ComputeEndpointTaskQueue:
     def __init__(
         self, endpoint: str, *, redis_client: t.Optional["redis.Redis[t.Any]"] = None
     ) -> None:
@@ -19,7 +19,7 @@ class FuncxEndpointTaskQueue:
 
     def __repr__(self) -> str:
         attr_str = f"endpoint={self.endpoint},redis_client={self.redis_client}"
-        return f"FuncxEndpointTaskQueue({attr_str})"
+        return f"ComputeEndpointTaskQueue({attr_str})"
 
     @property
     def queue_name(self) -> str:

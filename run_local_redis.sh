@@ -8,8 +8,8 @@ This is not the same as the redis that may be deployed with helm, k8s, etc.
 
 You can shut down and remove the container with
 
-    docker kill funcx-common-test-redis
-    docker rm funcx-common-test-redis
+    docker kill globus-compute-common-test-redis
+    docker rm globus-compute-common-test-redis
 
 
 '
@@ -17,4 +17,4 @@ You can shut down and remove the container with
 echo "turning on '-x' ..."
 set -x
 
-docker run -d -p 6379:6379 --name funcx-common-test-redis redis
+docker run -d -p 6379:6379 --name globus-compute-common-test-redis redis

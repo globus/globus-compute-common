@@ -3,9 +3,9 @@ import uuid
 
 import pytest
 
-from funcx_common.redis import FuncxRedisPubSub
-from funcx_common.tasks import TaskProtocol, TaskState
-from funcx_common.testing import LOCAL_REDIS_REACHABLE
+from globus_compute_common.redis import ComputeRedisPubSub
+from globus_compute_common.tasks import TaskProtocol, TaskState
+from globus_compute_common.testing import LOCAL_REDIS_REACHABLE
 
 
 class SimpleInMemoryTask(TaskProtocol):
@@ -19,8 +19,8 @@ class SimpleInMemoryTask(TaskProtocol):
     not LOCAL_REDIS_REACHABLE, reason="test requires local redis reachable"
 )
 def test_put_and_get_single_task():
-    producer = FuncxRedisPubSub()
-    consumer = FuncxRedisPubSub()
+    producer = ComputeRedisPubSub()
+    consumer = ComputeRedisPubSub()
     t = SimpleInMemoryTask()
     epid = str(uuid.uuid1())
 
@@ -39,8 +39,8 @@ def test_put_and_get_single_task():
 def test_put_and_get_single_task_deferred():
     # same as above, but do the subscribe call after pushing the task into the
     # queue
-    producer = FuncxRedisPubSub()
-    consumer = FuncxRedisPubSub()
+    producer = ComputeRedisPubSub()
+    consumer = ComputeRedisPubSub()
     t = SimpleInMemoryTask()
     epid = str(uuid.uuid1())
 
@@ -56,7 +56,7 @@ def test_put_and_get_single_task_deferred():
     not LOCAL_REDIS_REACHABLE, reason="test requires local redis reachable"
 )
 def test_empty_get():
-    consumer = FuncxRedisPubSub()
+    consumer = ComputeRedisPubSub()
     epid = str(uuid.uuid1())
 
     consumer.subscribe(epid)
@@ -68,7 +68,7 @@ def test_empty_get():
     not LOCAL_REDIS_REACHABLE, reason="test requires local redis reachable"
 )
 def test_subscribed_status():
-    consumer = FuncxRedisPubSub()
+    consumer = ComputeRedisPubSub()
     epid = str(uuid.uuid1())
 
     assert not consumer.subscribed
@@ -90,8 +90,8 @@ def test_unsubscribe_and_resubscribe():
     # subscribe, get a task, unsubscribe, task is not gotten, resubscribe and
     # get again
 
-    producer = FuncxRedisPubSub()
-    consumer = FuncxRedisPubSub()
+    producer = ComputeRedisPubSub()
+    consumer = ComputeRedisPubSub()
     t1 = SimpleInMemoryTask()
     t2 = SimpleInMemoryTask()
     epid = str(uuid.uuid1())
@@ -131,7 +131,7 @@ def test_unsubscribe_and_resubscribe():
 def test_final_messages_without_unsub():
     # getting final messages without unsubscribing is an error, as it means
     # that get_final_messages would never terminate
-    consumer = FuncxRedisPubSub()
+    consumer = ComputeRedisPubSub()
     epid = str(uuid.uuid1())
     consumer.subscribe(epid)
 

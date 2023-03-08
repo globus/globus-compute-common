@@ -1,6 +1,6 @@
 import typing as t
 
-from .serde import DEFAULT_SERDE, FuncxRedisSerde
+from .serde import DEFAULT_SERDE, ComputeRedisSerde
 
 _null_key = "__NULL_KEY__"
 
@@ -12,12 +12,12 @@ class RedisField:
     Uses owning class's redis client in `owner.redis_client` to connect, and uses
     owner's hname in `owner.hname` to uniquely identify the keys.
 
-    Fields can be serialized and deserialized by setting a FuncxRedisSerde.
+    Fields can be serialized and deserialized by setting a ComputeRedisSerde.
     """
 
     # TODO: have a cache and TTL on the properties so that we aren't making so many
     #       redis gets?
-    def __init__(self, serde: FuncxRedisSerde = DEFAULT_SERDE) -> None:
+    def __init__(self, serde: ComputeRedisSerde = DEFAULT_SERDE) -> None:
         self.serde = serde
         self.key: str = _null_key  # will be overwritten
 

@@ -1,13 +1,13 @@
 import pytest
 
-from funcx_common.redis import (
+from globus_compute_common.redis import (
     INT_SERDE,
-    FuncxRedisEnumSerde,
+    ComputeRedisEnumSerde,
     HasRedisFields,
     RedisField,
 )
-from funcx_common.tasks import TaskState
-from funcx_common.testing import LOCAL_REDIS_REACHABLE
+from globus_compute_common.tasks import TaskState
+from globus_compute_common.testing import LOCAL_REDIS_REACHABLE
 
 try:
     import redis
@@ -79,7 +79,7 @@ def test_redis_field_setter():
             self.redis_client = mredis
             self.hname = "c2"
 
-        foo = RedisField(serde=FuncxRedisEnumSerde(TaskState))
+        foo = RedisField(serde=ComputeRedisEnumSerde(TaskState))
 
     c1inst = C1()
     c2inst = C2()
@@ -113,7 +113,7 @@ def test_redis_field_getter():
 def test_redis_field_with_real_storage(redis_client):
     class TaskClass(HasRedisFields):
         foo = RedisField()
-        state = RedisField(serde=FuncxRedisEnumSerde(TaskState))
+        state = RedisField(serde=ComputeRedisEnumSerde(TaskState))
 
         def __init__(self):
             self.redis_client = redis_client

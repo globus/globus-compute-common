@@ -2,6 +2,13 @@
 
 <!-- scriv-insert-here -->
 
+<a id='changelog-0.1.0'></a>
+## 0.1.0 (2023-03-06)
+
+### Changed
+
+- Renamed funcx-common to globus-compute-common package
+
 <a id='changelog-0.0.25'></a>
 ## 0.0.25 (2023-03-06)
 
@@ -110,7 +117,7 @@
 - `InvalidAuthToken` and `InsufficientAuthScope` error classes were added for auth errors that occur in the web service
 
 - Implementation of v1 of the `funcx.messagepack` protocol.
-  See [the readme](src/funcx_common/messagepack/) for more info
+  See [the readme](src/globus_compute_common/messagepack/) for more info
 
 - The following message types have been added to `messagepack`: `Result`,
   `TaskCancel`

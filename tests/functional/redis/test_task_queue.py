@@ -3,9 +3,9 @@ import uuid
 
 import pytest
 
-from funcx_common.redis import FuncxEndpointTaskQueue
-from funcx_common.tasks import TaskProtocol, TaskState
-from funcx_common.testing import LOCAL_REDIS_REACHABLE
+from globus_compute_common.redis import ComputeEndpointTaskQueue
+from globus_compute_common.tasks import TaskProtocol, TaskState
+from globus_compute_common.testing import LOCAL_REDIS_REACHABLE
 
 
 @pytest.mark.skipif(
@@ -20,7 +20,7 @@ def test_enqueue_and_dequeue_simple_task():
 
     mytask = SimpleInMemoryTask()
     endpoint = str(uuid.uuid1())
-    task_queue = FuncxEndpointTaskQueue(endpoint)
+    task_queue = ComputeEndpointTaskQueue(endpoint)
 
     assert mytask.endpoint is None
 
@@ -39,7 +39,7 @@ def test_enqueue_and_dequeue_simple_task():
 )
 def test_dequeue_empty_behavior():
     endpoint = str(uuid.uuid1())
-    task_queue = FuncxEndpointTaskQueue(endpoint)
+    task_queue = ComputeEndpointTaskQueue(endpoint)
 
     with pytest.raises(queue.Empty):
         task_queue.dequeue()

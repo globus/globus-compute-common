@@ -40,7 +40,7 @@ class RedisS3Storage(TaskStorage):
                 "Cannot construct RedisS3Storage object since the boto3"
                 "package is not available. Either install it explicitly or install the "
                 "'boto3' extra, as in\n"
-                "  pip install 'funcx-common[boto3]'"
+                "  pip install 'globus-compute-common[boto3]'"
             )
 
         self.bucket_name = bucket_name
