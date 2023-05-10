@@ -88,7 +88,12 @@ def _log_unknown_fields(model: type[_ModelT], data: dict[str, t.Any]) -> None:
         raise NotImplementedError
 
     model_ = t.cast("type[pydantic.BaseModel]", model)
-    unknown_fields = {x for x in data if x not in model_.__fields__}
+
+    unknown_fields = set(data)
+    for name, field in model_.__fields__.items():
+        unknown_fields.discard(name)
+        unknown_fields.discard(field.alias)
+
     if unknown_fields:
         log.warning(
             "encountered unknown %s fields while reading a %s message: %s",
