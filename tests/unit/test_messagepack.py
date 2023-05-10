@@ -415,11 +415,32 @@ def test_unknown_data_fields_warn(caplog):
         # successfully unpacked
         assert isinstance(msg, Task)
     # but logged a warning (do two assertions so as not to insist on a precise format
-    # for the logged fields
+    # for the logged fields)
     assert (
         "encountered unknown data fields while reading a task message:"
     ) in caplog.text
     assert "foo_field" in caplog.text
+
+
+def test_dont_warn_alias_fields(caplog):
+    buf = crudely_pack_data(
+        {
+            "message_type": "ep_status_report",
+            "data": {
+                "endpoint_id": str(ID_ZERO),
+                "ep_status_report": {"this is an alias": "for global_state"},
+                "task_statuses": [],
+            },
+        }
+    )
+    with caplog.at_level(logging.WARNING, logger="globus_compute_common"):
+        msg = unpack(buf)
+        # successfully unpacked
+        assert isinstance(msg, EPStatusReport)
+    # but logged no warning (do two assertions so as not to insist on a precise format
+    # for the logged fields)
+    assert "encountered unknown data fields" not in caplog.text
+    assert "ep_status_report" not in caplog.text
 
 
 def test_unknown_envelope_fields_warn(caplog):
@@ -439,7 +460,7 @@ def test_unknown_envelope_fields_warn(caplog):
         # successfully unpacked
         assert isinstance(msg, Task)
     # but logged a warning (do two assertions so as not to insist on a precise format
-    # for the logged fields
+    # for the logged fields)
     assert (
         "encountered unknown envelope fields while reading a task message:"
     ) in caplog.text
