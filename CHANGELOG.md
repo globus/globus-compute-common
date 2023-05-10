@@ -2,6 +2,14 @@
 
 <!-- scriv-insert-here -->
 
+<a id='changelog-0.2.0'></a>
+## 0.2.0 (2023-05-10)
+
+### Fixed
+
+- Quashed warning that would be logged when deserializing `EPStatusReport` messages
+  using the `ep_status_report` alias for `global_state`
+
 <a id='changelog-0.1.0'></a>
 ## 0.1.0 (2023-03-06)
 
@@ -14,10 +22,10 @@
 
 ### Changed
 
-- Renamed the ``ep_status_report`` field of the ``EPStatusReport`` message to
-  ``global_state``
+- Renamed the `ep_status_report` field of the `EPStatusReport` message to
+  `global_state`
 
-  - ``global_state`` has an alias of ``ep_status_report`` for backward compatibility
+  - `global_state` has an alias of `ep_status_report` for backward compatibility
 
 <a id='changelog-0.0.24'></a>
 ## 0.0.24 (2023-01-23)
