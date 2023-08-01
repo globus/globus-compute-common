@@ -87,7 +87,7 @@ def _log_unknown_fields(model: type[_ModelT], data: dict[str, t.Any]) -> None:
     else:
         raise NotImplementedError
 
-    model_ = t.cast("type[pydantic.BaseModel]", model)
+    model_ = t.cast(pydantic.BaseModel, model)
 
     unknown_fields = set(data)
     for name, field in model_.__fields__.items():
