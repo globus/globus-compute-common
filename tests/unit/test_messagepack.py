@@ -234,7 +234,7 @@ def test_pack_and_unpack(message_class, init_args, expect_values, protocol_versi
         # explicitly check that the types of the two values match
         # otherwise, you get a false-negative when comparing `{"foo": "bar"}` to a
         # pydantic model object which `dict`s into `{"foo": "bar"}`
-        assert type(v2) == type(v)
+        assert type(v2) == type(v)  # noqa: E721
 
 
 def _required_arg_test_ids(param):

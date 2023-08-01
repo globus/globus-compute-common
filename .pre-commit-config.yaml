@@ -32,4 +32,4 @@ repos:
   hooks:
     - id: mypy
       files: ^src/globus_compute_common/
-      additional_dependencies: ['types-redis', 'pydantic']
+      additional_dependencies: ['types-redis', 'pydantic>=1,<2']
