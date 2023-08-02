@@ -7,7 +7,6 @@ A MessagePackProtocol only needs to define two actions:
 
 And the two must be inverses on any valid inputs.
 """
-
 import abc
 
 from .message_types import Message
