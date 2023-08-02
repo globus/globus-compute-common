@@ -17,9 +17,22 @@ class ResultErrorDetails(pydantic.BaseModel):
 
 
 @meta(message_type="result")
+class ResultV1(Message):
+    task_id: uuid.UUID
+    data: str
+    error_details: t.Optional[ResultErrorDetails]
+    task_statuses: t.Optional[t.List[TaskTransition]]
+
+    @property
+    def is_error(self) -> bool:
+        return self.error_details is not None
+
+
+@meta(message_type="result")
 class Result(Message):
     task_id: uuid.UUID
     data: str
+    details: t.Optional[t.Dict[t.Any, t.Any]]
     error_details: t.Optional[ResultErrorDetails]
     task_statuses: t.Optional[t.List[TaskTransition]]
 

@@ -42,6 +42,16 @@ def redis_client():
         },
         {"task_group_id": "foo_id"},
         {"queue_name": "foo_name"},
+        {
+            "payload": "abc",
+            "details": {
+                "Blah_Version": "3.10.4",
+                "Blah number": 1234,
+            },
+        },
+        {
+            "payload": "something",
+        },
     ],
 )
 def test_redis_task_create(redis_client, add_kwargs):
@@ -71,6 +81,12 @@ def test_redis_task_create(redis_client, add_kwargs):
         "queue_name",
     ]:
         assert getattr(task, attrname) == add_kwargs.get(attrname)
+
+    if "details" in add_kwargs:
+        for k, v in add_kwargs["details"].items():
+            assert task.details[k] == v
+    else:
+        assert task.details is None
 
 
 def test_redis_task_cannot_increase_ttl(redis_client):
