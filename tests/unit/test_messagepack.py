@@ -1,5 +1,6 @@
 import json
 import logging
+import typing as t
 import uuid
 
 import pydantic
@@ -23,9 +24,6 @@ from globus_compute_common.messagepack.message_types import (
     TaskTransition,
 )
 from globus_compute_common.messagepack.message_types.base import Message, meta
-
-# Singular import of old Result class
-from globus_compute_common.messagepack.message_types.result import ResultV1
 from globus_compute_common.messagepack.protocol_versions.proto1 import (
     MessageEnvelope,
     _load,
@@ -33,6 +31,23 @@ from globus_compute_common.messagepack.protocol_versions.proto1 import (
 from globus_compute_common.tasks.constants import ActorName, TaskState
 
 ID_ZERO = uuid.UUID(int=0)
+
+
+@meta(message_type="result")
+class ResultV1(Message):
+    """
+    Old Result before 'details' field was added, for backwards compatibility
+    testing
+    """
+
+    task_id: uuid.UUID
+    data: str
+    error_details: t.Optional[ResultErrorDetails]
+    task_statuses: t.Optional[t.List[TaskTransition]]
+
+    @property
+    def is_error(self) -> bool:
+        return self.error_details is not None
 
 
 def crudely_pack_data(data):
