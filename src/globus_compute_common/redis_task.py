@@ -99,6 +99,7 @@ class RedisTask(TaskProtocol, metaclass=HasRedisFieldsMeta):
     result_reference = t.cast(
         t.Optional[t.Dict[str, t.Any]], RedisField(serde=JSON_SERDE)
     )
+    details = t.cast(t.Optional[t.Dict[str, t.Any]], RedisField(serde=JSON_SERDE))
     exception = t.cast(t.Optional[str], RedisField())
     completion_time = t.cast(t.Optional[str], RedisField())
 
@@ -115,6 +116,7 @@ class RedisTask(TaskProtocol, metaclass=HasRedisFieldsMeta):
         task_group_id: t.Optional[str] = None,
         queue_name: t.Optional[str] = None,
         endpoint_id: t.Optional[str] = None,
+        details: t.Optional[t.Dict[str, t.Any]] = None,
     ):
         """
         If optional values are passed, then they will be written.
@@ -164,6 +166,8 @@ class RedisTask(TaskProtocol, metaclass=HasRedisFieldsMeta):
             self.queue_name = queue_name
         if endpoint_id is not None:
             self.endpoint_id = endpoint_id
+        if details is not None:
+            self.details = details
 
         self.ttl = self.DEFAULT_TTL
 

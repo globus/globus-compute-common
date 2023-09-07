@@ -20,6 +20,7 @@ class ResultErrorDetails(pydantic.BaseModel):
 class Result(Message):
     task_id: uuid.UUID
     data: str
+    details: t.Optional[t.Dict[t.Any, t.Any]]
     error_details: t.Optional[ResultErrorDetails]
     task_statuses: t.Optional[t.List[TaskTransition]]
 

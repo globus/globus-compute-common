@@ -1,5 +1,6 @@
 import json
 import logging
+import typing as t
 import uuid
 
 import pydantic
@@ -23,9 +24,30 @@ from globus_compute_common.messagepack.message_types import (
     TaskTransition,
 )
 from globus_compute_common.messagepack.message_types.base import Message, meta
+from globus_compute_common.messagepack.protocol_versions.proto1 import (
+    MessageEnvelope,
+    _load,
+)
 from globus_compute_common.tasks.constants import ActorName, TaskState
 
 ID_ZERO = uuid.UUID(int=0)
+
+
+@meta(message_type="result")
+class ResultV1(Message):
+    """
+    Old Result before 'details' field was added, for backwards compatibility
+    testing
+    """
+
+    task_id: uuid.UUID
+    data: str
+    error_details: t.Optional[ResultErrorDetails]
+    task_statuses: t.Optional[t.List[TaskTransition]]
+
+    @property
+    def is_error(self) -> bool:
+        return self.error_details is not None
 
 
 def crudely_pack_data(data):
@@ -235,6 +257,84 @@ def test_pack_and_unpack(message_class, init_args, expect_values, protocol_versi
         # otherwise, you get a false-negative when comparing `{"foo": "bar"}` to a
         # pydantic model object which `dict`s into `{"foo": "bar"}`
         assert type(v2) == type(v)  # noqa: E721
+
+
+@pytest.mark.parametrize(
+    "orig_class, new_class, init_args, expect_values",
+    [
+        (
+            # New version of Result will be deserialized by old unpack
+            Result,
+            ResultV1,
+            {
+                "task_id": ID_ZERO,
+                "data": "foo-bar-baz",
+                "metadata": {"a": "b"},
+            },
+            {
+                "task_id": ID_ZERO,
+                "data": "foo-bar-baz",
+            },
+        ),
+        (
+            # Old version of Result will be deserialized by new unpack
+            ResultV1,
+            Result,
+            {
+                "task_id": ID_ZERO,
+                "data": "d",
+                "error_details": ResultErrorDetails(code="c", user_message="m"),
+            },
+            {
+                "task_id": ID_ZERO,
+                "data": "d",
+                "edcode": "c",
+            },
+        ),
+        (
+            # Pre-serialized old version of Result is unpacked correctly
+            None,
+            Result,
+            b'\x01{"message_type":"result","data":{"task_id":"00000000-0000-0000-0000-000000000000","data":"d","error_details":{"code":"c","user_message":"m"},"task_statuses":null}}',  # noqa: E501
+            {
+                "task_id": ID_ZERO,
+                "data": "d",
+                "edcode": "c",
+            },
+        ),
+    ],
+)
+def test_result_back_compat(orig_class, new_class, init_args, expect_values):
+    packer = MessagePacker(default_protocol_version=1)
+    do_pack = packer.pack
+
+    def test_unpack(buf: bytes, force_class) -> Message:
+        body = buf[1:]
+        payload = json.loads(body)
+        envelope = _load(MessageEnvelope, payload)
+        return _load(force_class, envelope.data)
+
+    do_unpack = test_unpack
+
+    if orig_class is None:
+        on_wire = init_args
+    else:
+        message_obj = orig_class(**init_args)
+        on_wire = do_pack(message_obj)
+
+    unpacked_msg = do_unpack(on_wire, new_class)
+
+    assert isinstance(unpacked_msg, new_class)
+    assert unpacked_msg.task_id == expect_values["task_id"]
+    assert unpacked_msg.data == expect_values["data"]
+    if "edcode" in expect_values:
+        assert unpacked_msg.error_details.code == expect_values["edcode"]
+
+    # Either the new Result's metadata is discarded when serialized
+    #  by old package, or old Result is deserialized into a new one
+    #  without the info
+    if "metadata" not in expect_values:
+        assert not hasattr(unpacked_msg, "metadata")
 
 
 def _required_arg_test_ids(param):

@@ -2,6 +2,14 @@
 
 <!-- scriv-insert-here -->
 
+<a id='changelog-0.3.0a1'></a>
+## 0.3.0a1 (2023-08-07)
+
+### Changed
+
+- Added metadata dict to Result message
+- Added details dict to RedisTask
+
 <a id='changelog-0.2.0'></a>
 ## 0.2.0 (2023-05-10)
 
