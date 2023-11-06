@@ -2,8 +2,8 @@
 
 <!-- scriv-insert-here -->
 
-<a id='changelog-0.3.0a1'></a>
-## 0.3.0a1 (2023-08-07)
+<a id='changelog-0.3.0'></a>
+## 0.3.0 (2023-08-07)
 
 ### Changed
 
