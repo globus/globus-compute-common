@@ -570,7 +570,8 @@ def test_unknown_envelope_fields_warn(caplog):
 def test_meta_decorator():
     # case 1: no defined internal Meta (inherited from Message)
     @meta(foo=1, bar=2)
-    class MyMessage(Message): ...
+    class MyMessage(Message):
+        pass
 
     assert MyMessage.Meta.foo == 1
     assert MyMessage.Meta.bar == 2
@@ -589,7 +590,8 @@ def test_meta_decorator():
 
     # case 3: inherited internal Meta from non-Message class
     @meta(message_type="foo")
-    class MyMessage3(MyMessage2): ...
+    class MyMessage3(MyMessage2):
+        pass
 
     assert MyMessage3.Meta.foo == 1
     assert MyMessage3.Meta.bar == 3
