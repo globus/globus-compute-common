@@ -40,6 +40,7 @@ The protocol defines the following behavior for missing and unknown fields:
 Therefore, new fields may be added to the message classes, but they must not be
 required until all messages contain those fields.
 """  # noqa: E501
+
 from __future__ import annotations
 
 import json

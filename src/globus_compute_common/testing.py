@@ -1,6 +1,7 @@
 """
 This module defines tools for helping to test funcx_common.
 """
+
 try:
     import redis
 
