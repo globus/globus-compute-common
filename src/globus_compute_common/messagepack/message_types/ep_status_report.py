@@ -1,7 +1,7 @@
-import pydantic
 import typing as t
 import uuid
 
+import pydantic
 from pydantic import Field
 
 from .base import Message, meta

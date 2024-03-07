@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-import pydantic
 import typing as t
 
+import pydantic
 from pydantic import BaseModel
 
 from ..exceptions import WrongMessageTypeError
