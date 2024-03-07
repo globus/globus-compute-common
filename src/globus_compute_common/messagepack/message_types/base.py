@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import pydantic
 import typing as t
 
 from pydantic import BaseModel
@@ -22,12 +23,17 @@ class Message(BaseModel):
 
     # common Config for all of our pydantic models
     class Config:
-        # set this flag to allow underscore-prefixed attrs to be used rather than
-        # pydantic.PrivateAttr to declare instance variables on models which are
-        # not part of the serialized data
-        # see:
-        #   https://pydantic-docs.helpmanual.io/usage/models/#private-model-attributes
-        underscore_attrs_are_private = True
+        version = [int(num) for num in pydantic.__version__.split(".")]
+        major_version = version[0]
+        if major_version < 2:
+            # Set this flag if using Pydantic V2 to allow underscore-prefixed attrs
+            # to be used rather than pydantic.PrivateAttr to declare instance variables
+            # on models which are not part of the serialized data.
+            #
+            # See the following links:
+            # - attr: https://pydantic-docs.helpmanual.io/usage/models/#private-model-attributes
+            # - V2 migration: https://docs.pydantic.dev/latest/migration/#removed-in-pydantic-v2
+            underscore_attrs_are_private = True
 
     def assert_one_of_types(self, *message_types: type[Message]) -> None:
         if not isinstance(self, message_types):
