@@ -3,9 +3,9 @@ import logging
 import typing as t
 import uuid
 
-import pydantic
 import pytest
 
+from globus_compute_common import pydantic_v1
 from globus_compute_common.messagepack import (
     MessagePacker,
     UnrecognizedProtocolVersion,
@@ -392,7 +392,7 @@ def _required_arg_test_ids(param):
     ids=_required_arg_test_ids,
 )
 def test_message_missing_required_fields(message_class, init_args):
-    with pytest.raises(pydantic.ValidationError):
+    with pytest.raises(pydantic_v1.ValidationError):
         message_class(**init_args)
 
 
@@ -416,7 +416,7 @@ def test_result_is_error(details, expect):
 
 def test_invalid_uuid_rejected_on_init():
     Task(task_id=ID_ZERO, container_id=ID_ZERO, task_buffer="foo")
-    with pytest.raises(pydantic.ValidationError):
+    with pytest.raises(pydantic_v1.ValidationError):
         Task(task_id="foo", container_id=ID_ZERO, task_buffer="foo")
 
 
@@ -443,31 +443,31 @@ def test_invalid_uuid_rejected_on_unpack():
             },
         }
     )
-    with pytest.raises(pydantic.ValidationError):
+    with pytest.raises(pydantic_v1.ValidationError):
         unpack(buf_invalid)
 
 
 def test_cannot_unpack_unknown_message_type():
     buf = crudely_pack_data({"message_type": "foo", "data": {}})
-    with pytest.raises(pydantic.ValidationError):
+    with pytest.raises(pydantic_v1.ValidationError):
         unpack(buf)
 
 
 def test_cannot_unpack_message_missing_data():
     buf = crudely_pack_data({"message_type": "task"})
-    with pytest.raises(pydantic.ValidationError):
+    with pytest.raises(pydantic_v1.ValidationError):
         unpack(buf)
 
 
 def test_cannot_unpack_message_missing_type():
     buf = crudely_pack_data({"data": {}})
-    with pytest.raises(pydantic.ValidationError):
+    with pytest.raises(pydantic_v1.ValidationError):
         unpack(buf)
 
 
 def test_cannot_unpack_message_empty_data():
     buf = crudely_pack_data({"message_type": "task", "data": {}})
-    with pytest.raises(pydantic.ValidationError):
+    with pytest.raises(pydantic_v1.ValidationError):
         unpack(buf)
 
 
@@ -481,7 +481,7 @@ def test_cannot_unpack_message_empty_data():
 )
 def test_cannot_unpack_message_wrong_type(payload, expect_err):
     buf = crudely_pack_data(payload)
-    with pytest.raises(pydantic.ValidationError) as excinfo:
+    with pytest.raises(pydantic_v1.ValidationError) as excinfo:
         unpack(buf)
     assert expect_err in str(excinfo.value)
 
