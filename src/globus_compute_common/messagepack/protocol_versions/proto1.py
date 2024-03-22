@@ -47,7 +47,7 @@ import json
 import logging
 import typing as t
 
-import pydantic
+from globus_compute_common import pydantic_v1
 
 from ..message_types import ALL_MESSAGE_CLASSES, Message
 from ..protocol import MessagePackProtocol
@@ -63,11 +63,11 @@ _MESSAGE_TYPE_MAP: dict[str, type[Message]] = {
 }
 
 
-class MessageEnvelope(pydantic.BaseModel):
+class MessageEnvelope(pydantic_v1.BaseModel):
     message_type: str
     data: t.Dict[str, t.Any]
 
-    @pydantic.validator("message_type")
+    @pydantic_v1.validator("message_type")
     def message_type_is_known(cls, v: str) -> str:
         if v not in _MESSAGE_TYPE_MAP:
             # pydantic will wrap this message + context in a ValidationError
@@ -88,7 +88,7 @@ def _log_unknown_fields(model: type[_ModelT], data: dict[str, t.Any]) -> None:
     else:
         raise NotImplementedError
 
-    model_ = t.cast(pydantic.BaseModel, model)
+    model_ = t.cast(pydantic_v1.BaseModel, model)
 
     unknown_fields = set(data)
     for name, field in model_.__fields__.items():
@@ -105,7 +105,7 @@ def _log_unknown_fields(model: type[_ModelT], data: dict[str, t.Any]) -> None:
 
 
 def _load(model: type[_ModelT], data: dict[str, t.Any]) -> _ModelT:
-    model_ = t.cast("type[pydantic.BaseModel]", model)
+    model_ = t.cast("type[pydantic_v1.BaseModel]", model)
     ret = model_.parse_obj(data)
     _log_unknown_fields(model, data)
     return t.cast(_ModelT, ret)

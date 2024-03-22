@@ -3,13 +3,13 @@ from __future__ import annotations
 import typing as t
 import uuid
 
-import pydantic
+from globus_compute_common import pydantic_v1
 
 from .base import Message, meta
 from .task_transition import TaskTransition
 
 
-class ResultErrorDetails(pydantic.BaseModel):
+class ResultErrorDetails(pydantic_v1.BaseModel):
     # a string for the error code
     code: str
     # the user is always supposed to see user_message somewhere

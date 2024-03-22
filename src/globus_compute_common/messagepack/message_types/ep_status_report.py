@@ -1,7 +1,7 @@
 import typing as t
 import uuid
 
-from pydantic import Field
+from globus_compute_common.pydantic_v1 import Field
 
 from .base import Message, meta
 from .task_transition import TaskTransition

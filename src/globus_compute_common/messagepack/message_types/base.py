@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import typing as t
 
-from pydantic import BaseModel
+from globus_compute_common.pydantic_v1 import BaseModel
 
 from ..exceptions import WrongMessageTypeError
 
