@@ -2,6 +2,13 @@
 
 <!-- scriv-insert-here -->
 
+<a id='changelog-0.4.0'></a>
+## 0.4.0 (2024-03-26)
+
+### Added
+
+- Added support for Pydantic v2.
+
 <a id='changelog-0.3.0'></a>
 ## 0.3.0 (2023-08-07)
 
