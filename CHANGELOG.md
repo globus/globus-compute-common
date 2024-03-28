@@ -2,6 +2,13 @@
 
 <!-- scriv-insert-here -->
 
+<a id='changelog-0.4.1'></a>
+## 0.4.1 (2024-03-28)
+
+### Fixed
+
+- Users can install Pydantic V2 without causing pip dependency errors.
+
 <a id='changelog-0.4.0'></a>
 ## 0.4.0 (2024-03-26)
 
