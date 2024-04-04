@@ -23,7 +23,7 @@ Install `scriv` and `pre-commit` with
 ## Bugs & Feature Requests
 
 Should be reported as
-[GitHub Issues](https://github.com/funcx-faas/funcx-common/issues)
+[GitHub Issues](https://github.com/globus/globus-compute-common/issues)
 
 For a good bug report:
 

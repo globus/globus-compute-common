@@ -1,4 +1,4 @@
-[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/funcx-faas/funcx-common/main.svg)](https://results.pre-commit.ci/latest/github/funcx-faas/funcx-common/main)
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/globus/globus-compute-common/main.svg)](https://results.pre-commit.ci/latest/github/globus/globus-compute-common/main)
 
 # globus-compute-common
 

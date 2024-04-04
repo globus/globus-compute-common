@@ -18,4 +18,4 @@ requirements mentioned in the [contrib doc](./CONTRIBUTING.md):
 2. Update changelog: `make prepare-release`
 3. Commit: `git commit -m 'Bump version and changelog for release'`
 4. Tag and publish release: `make release`
-5. Write up the release as a [globus-compute-common GitHub Release](https://github.com/funcx-faas/funcx-common/releases)
+5. Write up the release as a [globus-compute-common GitHub Release](https://github.com/globus/globus-compute-common/releases)
