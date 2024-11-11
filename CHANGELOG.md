@@ -2,6 +2,17 @@
 
 <!-- scriv-insert-here -->
 
+<a id='changelog-0.5.0'></a>
+## 0.5.0 (2024-11-11)
+
+### Removed
+
+- Removed support for Python versions 3.7 and 3.8.
+
+### Added
+
+- Python versions 3.11, 3.12, and 3.13 are now officially supported.
+
 <a id='changelog-0.4.1'></a>
 ## 0.4.1 (2024-03-28)
 
