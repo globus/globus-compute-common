@@ -6,11 +6,13 @@ from .serde import (
     FLOAT_SERDE,
     INT_SERDE,
     JSON_SERDE,
+    UUID_SERDE,
     ComputeRedisEnumSerde,
     ComputeRedisFloatSerde,
     ComputeRedisIntSerde,
     ComputeRedisJSONSerde,
     ComputeRedisSerde,
+    ComputeRedisUUIDSerde,
 )
 from .task_queue import ComputeEndpointTaskQueue
 
@@ -25,10 +27,12 @@ __all__ = (
     "ComputeRedisIntSerde",
     "ComputeRedisFloatSerde",
     "ComputeRedisJSONSerde",
+    "ComputeRedisUUIDSerde",
     "DEFAULT_SERDE",
     "INT_SERDE",
     "FLOAT_SERDE",
     "JSON_SERDE",
+    "UUID_SERDE",
     "ComputeRedisEnumSerde",
     "ComputeRedisPubSub",
 )

@@ -1,9 +1,12 @@
+import uuid
+
 import pytest
 
 from globus_compute_common.redis import (
     DEFAULT_SERDE,
     INT_SERDE,
     JSON_SERDE,
+    UUID_SERDE,
     ComputeRedisEnumSerde,
 )
 from globus_compute_common.tasks import TaskState
@@ -39,3 +42,14 @@ def test_enum_serde():
     serde = ComputeRedisEnumSerde(TaskState)
     assert serde.serialize(TaskState.RUNNING) == "running"
     assert serde.deserialize(serde.serialize(TaskState.RUNNING)) is TaskState.RUNNING
+
+
+def test_uuid_serde():
+    uuid_obj = uuid.uuid4()
+    uuid_str = str(uuid_obj)
+    assert UUID_SERDE.serialize(uuid_obj) == uuid_str
+    assert UUID_SERDE.deserialize(uuid_str) == uuid_obj
+
+    with pytest.raises(ValueError) as exc_info:
+        UUID_SERDE.deserialize("not-a-uuid")
+    assert "Invalid UUID" in str(exc_info.value)
