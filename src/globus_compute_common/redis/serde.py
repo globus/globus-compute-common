@@ -1,6 +1,7 @@
 import enum
 import json
 import typing as t
+import uuid
 
 
 class ComputeRedisSerde:
@@ -57,7 +58,18 @@ class ComputeRedisEnumSerde(ComputeRedisSerde):
         return self.enum_class(value)
 
 
+class ComputeRedisUUIDSerde(ComputeRedisSerde):
+    def deserialize(self, value: str) -> t.Any:
+        try:
+            return uuid.UUID(value)
+        except ValueError as e:
+            raise ValueError(
+                f"Invalid UUID value when loading from Redis: {value}"
+            ) from e
+
+
 DEFAULT_SERDE = ComputeRedisSerde()
 INT_SERDE = ComputeRedisIntSerde()
 FLOAT_SERDE = ComputeRedisFloatSerde()
 JSON_SERDE = ComputeRedisJSONSerde()
+UUID_SERDE = ComputeRedisUUIDSerde()
