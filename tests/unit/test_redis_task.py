@@ -34,7 +34,7 @@ def redis_client():
     "add_kwargs",
     [
         {},
-        {"user_id": 10, "function_id": "blah_id"},
+        {"user_id": 10, "owner_id": str(uuid.uuid1()), "function_id": "blah_id"},
         {
             "container": "blahblah_id",
             "payload": "foo bar",
@@ -73,6 +73,7 @@ def test_redis_task_create(redis_client, add_kwargs):
     # set
     for attrname in [
         "user_id",
+        "owner_id",
         "function_id",
         "container",
         "payload",
