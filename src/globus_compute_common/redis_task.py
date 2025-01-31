@@ -68,6 +68,7 @@ class RedisTask(TaskProtocol, metaclass=HasRedisFieldsMeta):
         InternalTaskState, RedisField(serde=ComputeRedisEnumSerde(InternalTaskState))
     )
     user_id = t.cast(int, RedisField(serde=INT_SERDE))
+    owner_id = t.cast(str, RedisField())
     function_id = t.cast(str, RedisField())
     container = t.cast(str, RedisField())
     task_group_id = t.cast(str, RedisField())
@@ -109,6 +110,7 @@ class RedisTask(TaskProtocol, metaclass=HasRedisFieldsMeta):
         task_id: str,
         *,
         user_id: t.Optional[int] = None,
+        owner_id: t.Optional[str] = None,
         function_id: t.Optional[str] = None,
         container: t.Optional[str] = None,
         payload: t.Optional[str] = None,
@@ -125,6 +127,7 @@ class RedisTask(TaskProtocol, metaclass=HasRedisFieldsMeta):
         :param redis_client: Redis client for properties to get/set
         :param task_id: UUID of the task, as str
         :param user_id: ID of user to whom this task belongs
+        :param owner_id: UUID of the task owner, as str
         :param function_id: UUID of the function for this task, as str
         :param container: UUID of container in which to run, as str
         :param payload: serialized function + input data
@@ -152,6 +155,8 @@ class RedisTask(TaskProtocol, metaclass=HasRedisFieldsMeta):
         # remaining RedisField attributes
         if user_id is not None:
             self.user_id = user_id
+        if owner_id is not None:
+            self.owner_id = owner_id
         if function_id is not None:
             self.function_id = function_id
         if container is not None:
