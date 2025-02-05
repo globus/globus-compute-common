@@ -2,6 +2,15 @@
 
 <!-- scriv-insert-here -->
 
+##  (2025-02-05)
+
+### Added
+
+- Added the `ComputeRedisUUIDSerde` class (`UUID_SERDE`) to handle serialization
+  and deserialization `RedisField` UUID objects.
+
+- Added an `owner_id` attribute to the `RedisTask` class to store the owner's UUID.
+
 <a id='changelog-0.5.0'></a>
 ## 0.5.0 (2024-11-11)
 
