@@ -2,6 +2,13 @@
 
 <!-- scriv-insert-here -->
 
+<a id='changelog-0.7.1'></a>
+## 0.7.1 (2025-06-06)
+
+### Fixed
+
+- A packaging error falsely and prematurely dropped support for Python 3.9
+
 <a id='changelog-0.7.0'></a>
 ## 0.7.0 (2025-06-06)
 
