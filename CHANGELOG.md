@@ -2,7 +2,20 @@
 
 <!-- scriv-insert-here -->
 
-##  (2025-02-05)
+<a id='changelog-0.7.0'></a>
+## 0.7.0 (2025-06-06)
+
+### Added
+
+- Added an `owner_id` attribute to the `RedisTask` class to store the owner's UUID.
+
+### Changed
+
+- Update minimum Python requirements to 3.9
+
+- Update minimum Redis and Boto requirements (now 5.3 and 1.37)
+
+## 0.6.0 (2025-02-05)
 
 ### Added
 
