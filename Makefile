@@ -1,4 +1,4 @@
-COMPUTE_COMMON_VERSION=$(shell grep '^version =' setup.cfg | cut -d '=' -f2 | tr -d ' ')
+COMPUTE_COMMON_VERSION=$(shell grep '^version' pyproject.toml | head -n 1 | cut -d '"' -f2)
 
 .PHONY: install
 install:
