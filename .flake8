@@ -1,0 +1,11 @@
+[flake8]
+exclude = .git,.tox,__pycache__,dist,venv,.venv*
+# we enforce 80 char width with `black` "loosely", so flake8 should be set to
+# not fail on up to 88 chars of width
+max-line-length = 88
+ignore = W503, W504, E203, B008, E704
+
+[flake8:local-plugins]
+extension =
+    FX = globus_compute_flake8:Plugin
+paths = ./src/globus_compute_common/
