@@ -1,5 +1,11 @@
 COMPUTE_COMMON_VERSION=$(shell grep '^version =' setup.cfg | cut -d '=' -f2 | tr -d ' ')
 
+.PHONY: install
+install:
+	python -m venv --upgrade-deps .venv
+	.venv/bin/pip install -e '.'
+	.venv/bin/pip install --group dev
+
 .PHONY: lint test
 lint:
 	tox -e lint,mypy
