@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 coverage = ["coverage[toml]"]
 test = [
     "pytest<9",
-    "pytest-cov<6",
+    "pytest-cov<7",
     "pytest-xdist>=3.7.0",
     "types-redis",
     { include-group = "coverage" },
