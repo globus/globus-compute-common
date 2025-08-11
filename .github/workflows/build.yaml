@@ -9,7 +9,7 @@ jobs:
   mypy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-python@v5
         with:
           python-version: '3.x'
@@ -27,7 +27,7 @@ jobs:
     name: "py${{ matrix.python-version }} on ${{ matrix.os }} "
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: start redis
         if: runner.os == 'Linux'
         uses: ./.github/actions/redis
