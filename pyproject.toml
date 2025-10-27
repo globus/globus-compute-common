@@ -57,7 +57,7 @@ repository = "https://github.com/globus/globus-compute-common"
 [project.optional-dependencies]
 boto3 = ["boto3>=1.37"]
 moto = ["moto[s3]>=5,<6"]
-redis = ["redis>=5.3,<7"]
+redis = ["redis>=5.3,<8"]
 
 [tool.setuptools.package-data]
 globus_compute_common = [
