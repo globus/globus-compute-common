@@ -17,15 +17,13 @@ def _check_has_redis() -> None:
     # defer this error until the caller tries to instantiate a connection or setup the
     # error log handler, so that imports work even without the 'redis' dependency
     if not has_redis:
-        raise RuntimeError(
-            """\
+        raise RuntimeError("""\
 Cannot import globus_compute_common.redis if the 'redis' package is not available.
 Either install it explicitly or install the 'redis' extra, as in
 
     pip install 'globus-compute-common[redis]'
 
-"""
-        )
+""")
 
 
 def default_redis_connection_factory(
