@@ -1,7 +1,7 @@
 import typing as t
 import uuid
 
-from globus_compute_common.pydantic_v1 import Field
+from pydantic import ConfigDict, Field
 
 from .base import Message, meta
 from .task_transition import TaskTransition
@@ -19,5 +19,4 @@ class EPStatusReport(Message):
     global_state: t.Dict[str, t.Any] = Field(alias="ep_status_report")
     task_statuses: t.Dict[str, t.List[TaskTransition]]
 
-    class Config:
-        allow_population_by_field_name = True
+    model_config = ConfigDict(populate_by_name=True)

@@ -11,7 +11,7 @@ class Task(Message):
 
     # for backward compatibility; to be removed when we support only
     # endpoints >= v1.1
-    container_id: t.Optional[uuid.UUID]
+    container_id: t.Optional[uuid.UUID] = None
 
-    container: t.Optional[Container]
+    container: t.Optional[Container] = None
     task_buffer: str

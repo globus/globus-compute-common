@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import typing as t
 
-from globus_compute_common.pydantic_v1 import BaseModel
+from pydantic import BaseModel
 
 from ..exceptions import WrongMessageTypeError
 
@@ -19,15 +19,6 @@ class Message(BaseModel):
     @property
     def message_type(self) -> str:
         return self.Meta.message_type
-
-    # common Config for all of our pydantic models
-    class Config:
-        # set this flag to allow underscore-prefixed attrs to be used rather than
-        # pydantic.PrivateAttr to declare instance variables on models which are
-        # not part of the serialized data
-        # see:
-        #   https://pydantic-docs.helpmanual.io/usage/models/#private-model-attributes
-        underscore_attrs_are_private = True
 
     def assert_one_of_types(self, *message_types: type[Message]) -> None:
         if not isinstance(self, message_types):

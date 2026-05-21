@@ -47,7 +47,7 @@ import json
 import logging
 import typing as t
 
-from globus_compute_common import pydantic_v1
+import pydantic
 
 from ..message_types import ALL_MESSAGE_CLASSES, Message
 from ..protocol import MessagePackProtocol
@@ -63,11 +63,12 @@ _MESSAGE_TYPE_MAP: dict[str, type[Message]] = {
 }
 
 
-class MessageEnvelope(pydantic_v1.BaseModel):
+class MessageEnvelope(pydantic.BaseModel):
     message_type: str
     data: t.Dict[str, t.Any]
 
-    @pydantic_v1.validator("message_type")
+    @pydantic.field_validator("message_type")
+    @classmethod
     def message_type_is_known(cls, v: str) -> str:
         if v not in _MESSAGE_TYPE_MAP:
             # pydantic will wrap this message + context in a ValidationError
@@ -88,10 +89,10 @@ def _log_unknown_fields(model: type[_ModelT], data: dict[str, t.Any]) -> None:
     else:
         raise NotImplementedError
 
-    model_ = t.cast(pydantic_v1.BaseModel, model)
+    model_ = t.cast(type[pydantic.BaseModel], model)
 
     unknown_fields = set(data)
-    for name, field in model_.__fields__.items():
+    for name, field in model_.model_fields.items():
         unknown_fields.discard(name)
         unknown_fields.discard(field.alias)
 
@@ -105,17 +106,19 @@ def _log_unknown_fields(model: type[_ModelT], data: dict[str, t.Any]) -> None:
 
 
 def _load(model: type[_ModelT], data: dict[str, t.Any]) -> _ModelT:
-    model_ = t.cast("type[pydantic_v1.BaseModel]", model)
-    ret = model_.parse_obj(data)
+    model_ = t.cast("type[pydantic.BaseModel]", model)
+    ret = model_.model_validate(data)
     _log_unknown_fields(model, data)
     return t.cast(_ModelT, ret)
 
 
 class MessagePackProtocolV1(MessagePackProtocol):
     def pack(self, message: Message) -> bytes:
-        body = MessageEnvelope(message_type=message.message_type, data=message.dict())
+        body = MessageEnvelope(
+            message_type=message.message_type, data=message.model_dump()
+        )
         # encode() defaults to UTF-8, which is what the protocol specifies
-        return _VERSION_BYTE + body.json(separators=(",", ":")).encode()
+        return _VERSION_BYTE + body.model_dump_json().encode()
 
     def unpack(self, buf: bytes) -> Message:
         # strip the version byte header
