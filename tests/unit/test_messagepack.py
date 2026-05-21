@@ -3,9 +3,9 @@ import logging
 import typing as t
 import uuid
 
+import pydantic
 import pytest
 
-from globus_compute_common import pydantic_v1
 from globus_compute_common.messagepack import (
     MessagePacker,
     UnrecognizedProtocolVersion,
@@ -42,8 +42,8 @@ class ResultV1(Message):
 
     task_id: uuid.UUID
     data: str
-    error_details: t.Optional[ResultErrorDetails]
-    task_statuses: t.Optional[t.List[TaskTransition]]
+    error_details: t.Optional[ResultErrorDetails] = None
+    task_statuses: t.Optional[t.List[TaskTransition]] = None
 
     @property
     def is_error(self) -> bool:
@@ -76,13 +76,8 @@ def crudely_pack_data(data):
             {
                 "endpoint_id": ID_ZERO,
                 "global_state": {
-                    str(ID_ZERO): [
-                        TaskTransition(
-                            timestamp=1,
-                            state=TaskState.EXEC_END,
-                            actor=ActorName.INTERCHANGE,
-                        )
-                    ]
+                    "heartbeat_period": 10,
+                    "active": True,
                 },
                 "task_statuses": {},
             },
@@ -392,7 +387,7 @@ def _required_arg_test_ids(param):
     ids=_required_arg_test_ids,
 )
 def test_message_missing_required_fields(message_class, init_args):
-    with pytest.raises(pydantic_v1.ValidationError):
+    with pytest.raises(pydantic.ValidationError):
         message_class(**init_args)
 
 
@@ -416,7 +411,7 @@ def test_result_is_error(details, expect):
 
 def test_invalid_uuid_rejected_on_init():
     Task(task_id=ID_ZERO, container_id=ID_ZERO, task_buffer="foo")
-    with pytest.raises(pydantic_v1.ValidationError):
+    with pytest.raises(pydantic.ValidationError):
         Task(task_id="foo", container_id=ID_ZERO, task_buffer="foo")
 
 
@@ -443,45 +438,45 @@ def test_invalid_uuid_rejected_on_unpack():
             },
         }
     )
-    with pytest.raises(pydantic_v1.ValidationError):
+    with pytest.raises(pydantic.ValidationError):
         unpack(buf_invalid)
 
 
 def test_cannot_unpack_unknown_message_type():
     buf = crudely_pack_data({"message_type": "foo", "data": {}})
-    with pytest.raises(pydantic_v1.ValidationError):
+    with pytest.raises(pydantic.ValidationError):
         unpack(buf)
 
 
 def test_cannot_unpack_message_missing_data():
     buf = crudely_pack_data({"message_type": "task"})
-    with pytest.raises(pydantic_v1.ValidationError):
+    with pytest.raises(pydantic.ValidationError):
         unpack(buf)
 
 
 def test_cannot_unpack_message_missing_type():
     buf = crudely_pack_data({"data": {}})
-    with pytest.raises(pydantic_v1.ValidationError):
+    with pytest.raises(pydantic.ValidationError):
         unpack(buf)
 
 
 def test_cannot_unpack_message_empty_data():
     buf = crudely_pack_data({"message_type": "task", "data": {}})
-    with pytest.raises(pydantic_v1.ValidationError):
+    with pytest.raises(pydantic.ValidationError):
         unpack(buf)
 
 
 @pytest.mark.parametrize(
     "payload, expect_err",
     [
-        ([{"message_type": "task"}], "expected dict not list"),
-        ({"message_type": ["task"], "data": {}}, "str type expected"),
-        ({"message_type": "task", "data": None}, "none is not an allowed value"),
+        ([{"message_type": "task"}], "Input should be a valid dictionary"),
+        ({"message_type": ["task"], "data": {}}, "Input should be a valid string"),
+        ({"message_type": "task", "data": None}, "Input should be a valid dictionary"),
     ],
 )
 def test_cannot_unpack_message_wrong_type(payload, expect_err):
     buf = crudely_pack_data(payload)
-    with pytest.raises(pydantic_v1.ValidationError) as excinfo:
+    with pytest.raises(pydantic.ValidationError) as excinfo:
         unpack(buf)
     assert expect_err in str(excinfo.value)
 
@@ -529,7 +524,7 @@ def test_dont_warn_alias_fields(caplog):
             "data": {
                 "endpoint_id": str(ID_ZERO),
                 "ep_status_report": {"this is an alias": "for global_state"},
-                "task_statuses": [],
+                "task_statuses": {},
             },
         }
     )
