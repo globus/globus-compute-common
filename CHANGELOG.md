@@ -2,6 +2,12 @@
 
 <!-- scriv-insert-here -->
 
+##  (%Y-%m-%d)
+
+### Removed
+
+- Removed support for Python version 3.9.
+
 <a id='changelog-0.7.1'></a>
 ## 0.7.1 (2025-06-06)
 
