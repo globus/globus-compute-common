@@ -13,20 +13,18 @@ repos:
   rev: v3.21.2
   hooks:
     - id: pyupgrade
-      args: ["--py37-plus"]
-- repo: https://github.com/psf/black-pre-commit-mirror
-  rev: 26.5.1
+      args: ["--py310-plus"]
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  rev: v0.15.20
   hooks:
-    - id: black
-- repo: https://github.com/pycqa/flake8
-  rev: 7.3.0
-  hooks:
-    - id: flake8
-      additional_dependencies: ['flake8-bugbear==22.12.6']
-- repo: https://github.com/PyCQA/isort
-  rev: 9.0.0a3
-  hooks:
-    - id: isort
+    - id: ruff-check
+      types_or: [ python ]
+      args: [ --select, I ]
+    - id: ruff-check
+      types_or: [ python ]
+      args: [ --fix, --select, I ]
+    - id: ruff-format
+      types_or: [ python ]
 - repo: https://github.com/pre-commit/mirrors-mypy
   rev: v2.1.0
   hooks:

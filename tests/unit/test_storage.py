@@ -1,4 +1,3 @@
-import sys
 import uuid
 
 import pytest
@@ -13,12 +12,7 @@ from globus_compute_common.tasks import TaskProtocol, TaskState
 
 try:
     import boto3
-
-    if sys.version_info >= (3, 8):
-        from moto import mock_aws as moto_mock
-    else:
-        # moto v5 doesn't support py37; fall back to v4 with mock_s3
-        from moto import mock_s3 as moto_mock
+    from moto import mock_aws as moto_mock
 
     has_boto = True
 except ImportError:
