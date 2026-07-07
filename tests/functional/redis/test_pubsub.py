@@ -4,11 +4,11 @@ import uuid
 import pytest
 
 from globus_compute_common.redis import ComputeRedisPubSub
-from globus_compute_common.tasks import TaskProtocol, TaskState
+from globus_compute_common.tasks import TaskState
 from globus_compute_common.testing import LOCAL_REDIS_REACHABLE
 
 
-class SimpleInMemoryTask(TaskProtocol):
+class SimpleInMemoryTask:
     def __init__(self):
         self.task_id = str(uuid.uuid1())
         self.endpoint = None

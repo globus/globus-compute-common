@@ -8,7 +8,7 @@ from globus_compute_common.task_storage import (
     StorageException,
     get_default_task_storage,
 )
-from globus_compute_common.tasks import TaskProtocol, TaskState
+from globus_compute_common.tasks import TaskState
 
 try:
     import boto3
@@ -19,7 +19,7 @@ except ImportError:
     has_boto = False
 
 
-class SimpleInMemoryTask(TaskProtocol):
+class SimpleInMemoryTask:
     def __init__(self):
         self.task_id = str(uuid.uuid1())
         self.endpoint = None

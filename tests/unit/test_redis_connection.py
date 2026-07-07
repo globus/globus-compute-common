@@ -9,7 +9,7 @@ from globus_compute_common.redis import (
     default_redis_connection_factory,
     redis_connection_error_logging,
 )
-from globus_compute_common.tasks import TaskProtocol, TaskState
+from globus_compute_common.tasks import TaskState
 
 try:
     import redis
@@ -41,7 +41,7 @@ def test_pubsub_repr():
 
 @pytest.mark.skipif(not has_redis, reason="test requires redis lib")
 def test_connection_error_on_enqueue(monkeypatch):
-    class SimpleInMemoryTask(TaskProtocol):
+    class SimpleInMemoryTask:
         def __init__(self):
             self.task_id = str(uuid.uuid1())
             self.endpoint = None

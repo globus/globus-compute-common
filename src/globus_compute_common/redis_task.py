@@ -8,7 +8,7 @@ from .redis import (
     HasRedisFieldsMeta,
     RedisField,
 )
-from .tasks import InternalTaskState, TaskProtocol, TaskState
+from .tasks import InternalTaskState, TaskState
 
 try:
     import redis
@@ -18,7 +18,7 @@ except ImportError:
     has_redis = False
 
 
-class RedisTask(TaskProtocol, metaclass=HasRedisFieldsMeta):
+class RedisTask(metaclass=HasRedisFieldsMeta):
     """
     ORM-esque class to wrap access to properties of tasks.
 

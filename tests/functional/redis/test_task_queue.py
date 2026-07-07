@@ -4,7 +4,7 @@ import uuid
 import pytest
 
 from globus_compute_common.redis import ComputeEndpointTaskQueue
-from globus_compute_common.tasks import TaskProtocol, TaskState
+from globus_compute_common.tasks import TaskState
 from globus_compute_common.testing import LOCAL_REDIS_REACHABLE
 
 
@@ -12,7 +12,7 @@ from globus_compute_common.testing import LOCAL_REDIS_REACHABLE
     not LOCAL_REDIS_REACHABLE, reason="test requires local redis reachable"
 )
 def test_enqueue_and_dequeue_simple_task():
-    class SimpleInMemoryTask(TaskProtocol):
+    class SimpleInMemoryTask:
         def __init__(self):
             self.task_id = str(uuid.uuid1())
             self.endpoint = None
