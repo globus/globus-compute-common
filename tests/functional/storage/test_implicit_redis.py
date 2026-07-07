@@ -1,10 +1,10 @@
 import uuid
 
 from globus_compute_common.task_storage import ImplicitRedisStorage
-from globus_compute_common.tasks import TaskProtocol, TaskState
+from globus_compute_common.tasks import TaskState
 
 
-class SimpleInMemoryTask(TaskProtocol):
+class SimpleInMemoryTask:
     def __init__(self):
         self.task_id = str(uuid.uuid1())
         self.endpoint = None
