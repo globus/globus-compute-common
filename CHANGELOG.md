@@ -2,6 +2,19 @@
 
 <!-- scriv-insert-here -->
 
+##  (%Y-%m-%d)
+
+### Removed
+
+- Removed support for Python version 3.9.
+- Removed support for Pydantic v1.
+
+### Changed
+
+- Converted `TaskProtocol` to a true `typing.Protocol` and updated task
+  implementations to rely on structural typing instead of inheriting
+  from a class which was a protocol in name only.
+
 <a id='changelog-0.7.1'></a>
 ## 0.7.1 (2025-06-06)
 
