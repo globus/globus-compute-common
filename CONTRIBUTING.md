@@ -75,3 +75,15 @@ To create a new changelog fragment, run
 
 and populate the fragment. It will include comments which instruct you on how
 to fill out the fragment.
+
+## Git Blame Hygiene
+
+This repository includes a `.git-blame-ignore-revs` file, which contains a list of
+commits that clutter `git blame` output like code-formatter runs. To configure git to
+ignore those commits when blaming:
+
+    # for just this repository:
+    git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+    # for your whole machine:
+    git config --global blame.ignoreRevsFile ':(optional).git-blame-ignore-revs'  # :(optional) -> don't error if another repository lacks this file
